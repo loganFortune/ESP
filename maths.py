@@ -72,11 +72,18 @@ def test_tisean_package_service_PartTwo():
     gp.p('./Tisean_test_accuracy/histogram_amplitude.ps')
     
     # Correlation
-    stream = os.popen('corr -D10 ./Tisean_test_accuracy/amplitude.dat') # Only 10 correlations values
+    stream = os.popen('corr -D10 ./Tisean_test_accuracy/amplitude.dat') # Only 10 correlations values : we need to see it crossing zero...
     output = stream.read()
     print("[Corr] :")
     print("The first two lines contain: 1. the average and 2. the standard deviation of the data. The following lines are the autocorrelations (first column: delay, second column: autocorrelation). ")
     print(output)
+    stream.close()
+    
+    #Spectrum
+    os.system("spectrum ./Tisean_test_accuracy/amplitude.dat -o ./Tisean_test_accuracy/amplitude.dat_sp ")
+    gp.c('set logscale y')
+    gp.c('plot \'amplitude.dat_sp\'')
+    gp.p('./Tisean_test_accuracy/part2_amplitude_spectrum.ps')
     
 test_tisean_package_service_PartOne()
 test_tisean_package_service_PartTwo()
