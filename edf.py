@@ -25,17 +25,7 @@ class edf_data :
             self.sigbufs[i, :] = self.file_read_pyedflib.readSignal(i)
 
         self.file_read_pyedflib.close()
-        
-    def fft_spectogram_analysis(self):
-        print(" Samples Frequency : ", self.sample_frequency)
-        freqs, times, Sx = signal.spectrogram(self.sigbufs[0], fs=self.sample_frequency, window='boxcar',
-                                      nperseg=None, noverlap=None,
-                                      detrend=False, scaling='spectrum')
-        f_spec, ax = plt.subplots(figsize=(4.8, 2.4))
-        ax.pcolormesh(times, freqs / 1000, 10 * np.log10(Sx))
-        ax.set_ylabel('Frequency [kHz]')
-        ax.set_xlabel('Time [s]');
-        
+                
     def compute_lyap_tisean_wrapper(self, data, your_os='linux', lyap_method='lyap_r'):
         if(your_os=='linux' or your_os=='Linux'):
             #print("You are working with a Linux operating system.")

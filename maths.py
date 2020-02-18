@@ -5,80 +5,78 @@ Author : LF - SM -TD
 Date : 01/02/2020
 """
 
+# Library Python Basics
+import os
+import matplotlib.pyplot as plt
+
+#Library Chaos Libraries
 import nolds.examples
 import nolds
-from edf import edf_data
-import matplotlib.pyplot as plt
-import os
 import PyGnuplot as gp
 
 def test_nolds_package_service_accuracy():
+    print("You are testing the 'nolds' package...")
     nolds.examples.plot_lyap("tent")
     nolds.examples.plot_lyap("logistic")
 
-def test_tisean_package_service_accuracy():
+def test_tisean_package_service_PartOne():
+    
+    print("\n You are testing the Tisean Package (Part1) ... \n")
     
     # Input Data
-    print("We are using the amplitude.dat file given by Tisean website.")
+    print("We are testing the Henon map.")
+    gp.c('set yrange [-1:1]')
+    gp.c('plot \'< henon -B0 -A2. -l100\' using 0:1 with linespoints') # a = 2.0, b=0 , 100 iterations
+    gp.p('./Tisean_test_accuracy/part1_henonmap.ps')
+    
+    # Bifurcation Diagram
+    print("Bifurcation Henon Map.")
+    gp.c('set autoscale') # Important line because if you have plotted something before the next plot might be impacted !
+    gp.c('plot \'< henon -B0 -A2. -l50000 | delay\' with dots') # a = 2.0, b = 0, 50000 iterations
+    gp.p('./Tisean_test_accuracy/part1_henonmap_bifurcation.ps')
+    
+    # Histogram
+    print("Histogram.")
+    os.system("henon -l10000 -B0 -A2. -o ./Tisean_test_accuracy/henon.dat") # a = 2.0, b = 0, 10000 iterations
+    gp.c('set autoscale')
+    gp.c('plot "< histogram -b50 ./Tisean_test_accuracy/henon.dat" with boxes') # 50 bins
+    gp.p('./Tisean_test_accuracy/histogram.ps')
+    
+    # Lyapunov
+    print("Lyapunov.")
+    os.system('henon -l10000 -B0 -A2. | lyap_r -s20 -o ./Tisean_test_accuracy/lyap_r_henon.dat') # a = 2.0, b = 0, 10000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
+    gp.c('set autoscale')
+    gp.c('plot \'./Tisean_test_accuracy/lyap_r_henon.dat\' with lines, x*log(2.)-8, -log(2.), \'lyap_r.dat\' with lines ')
+    gp.p('./Tisean_test_accuracy/Lyapunov_henon.ps')
+    
+    print("Finished. See Tisean_test_accuracy directory !")
+    
+def test_tisean_package_service_PartTwo():
+    
+    print("\n You are testing the Tisean Package (Part2) ... \n")
+    
+    # Input Data
+    print("We are using the data given by the Tisean Package : amplitude.dat")
     datafile = open("./Tisean_test_accuracy/amplitude.dat","r")
     data = []
     for ligne in datafile:
         data.append(float(ligne))   
     datafile.close()
+    plt.plot(data)
+    plt.show()
     
     # Histogram
-    print("Histogram :")
+    print("Histogram.")
+    gp.c('set autoscale')
     gp.c('plot "< histogram -b50 ./Tisean_test_accuracy/amplitude.dat" with boxes')
-    gp.p('./Tisean_test_accuracy/histogram.ps')
+    gp.p('./Tisean_test_accuracy/histogram_amplitude.ps')
     
     # Correlation
-    stream = os.popen('corr ./Tisean_test_accuracy/amplitude.dat')
+    stream = os.popen('corr -D10 ./Tisean_test_accuracy/amplitude.dat') # Only 10 correlations values
     output = stream.read()
     print("[Corr] :")
     print("The first two lines contain: 1. the average and 2. the standard deviation of the data. The following lines are the autocorrelations (first column: delay, second column: autocorrelation). ")
     print(output)
     
-
-def compute_lyapunov_exponent():
-    
-    time_series_epylepsie = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
-        
-    L_window = 2000
-    
-    lyap_exp = []
-    time_debug = []
-    
-    # NOLDS Method 
-    for i in range (0, int(len(time_series_epylepsie.sigbufs[0]) / L_window)):
-        lyap_exp.append(nolds.lyap_r(time_series_epylepsie.sigbufs[0][i*L_window:(i+1)*L_window]))
-        time_debug.append(i*L_window/time_series_epylepsie.sample_frequency)
-        print(i*L_window/int(len(time_series_epylepsie.sigbufs[0])), "%")
-    """"""
-    # Result
-    # naming the x axis 
-    plt.xlabel('Time [sec]') 
-    # naming the y axis 
-    plt.ylabel('Maximum Lyapunov Exponent') 
-    plt.plot(time_series_epylepsie.sigbufs[0])
-    plt.show()
-
-def compute_lyapunov_exponent_tisean():
-        time_series_epylepsie = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
-        
-        L_window = 5000
-    
-        lyap_exp = []
-        time_debug = []
-    
-        for i in range (0, int(len(time_series_epylepsie.sigbufs[0]) / L_window)):
-            lyap_exp.append(time_series_epylepsie.compute_lyap_tisean_wrapper(time_series_epylepsie.sigbufs[0][i*L_window:(i+1)*L_window], 'Linux', 'lyap_r'))
-            time_debug.append(i*L_window/time_series_epylepsie.sample_frequency)
-        # Result
-        # naming the x axis 
-        plt.xlabel('Time [sec]') 
-        # naming the y axis 
-        plt.ylabel('Maximum Lyapunov Exponent') 
-        plt.plot(time_debug, lyap_exp)
-        plt.show()
-
-test_tisean_package_service_accuracy()
+test_tisean_package_service_PartOne()
+test_tisean_package_service_PartTwo()
