@@ -33,4 +33,4 @@ You should be able to see that kind of result after the installation:
 ## Gnuplot
 
 Gnuplot is already installed in Linux environment. For Windows users, [install Gnuplot](https://sourceforge.net/projects/gnuplot/files/): 
-**Don't forget to check** _Add to 'Path' environment variables_ **option !**
+- **Don't forget to check** _Add to 'Path' environment variables_ **option !**
