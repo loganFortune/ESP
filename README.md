@@ -29,3 +29,7 @@ pip install nolds
 You should be able to see that kind of result after the installation:
 
 ![Henon -h shell command](/images/install_Tisean.png)
+
+## Gnuplot
+
+Gnuplot is already installed in Linux environment. For Windows users, [install Gnuplot](https://sourceforge.net/projects/gnuplot/files/): **Don't forget to check __add 'Path' environment variables__ option !**
