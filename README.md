@@ -28,4 +28,4 @@ pip install nolds
 
 You should be able to see that kind of result after the installation:
 
-!['Henon -h' shell command](/images/install_Tisean.png)
+![Henon -h shell command](/images/install_Tisean.png)
