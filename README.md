@@ -26,6 +26,6 @@ pip install nolds
 - It is easier to _download binary executables_. 
 - Don't forget to add /bin file in your 'Path' (environment variables) for **Windows users**.
 
-You should be able to see that kind of result :
+You should be able to see that kind of result after the installation:
 
 !['Henon -h' shell command](/images/install_Tisean.png)
