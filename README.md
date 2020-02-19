@@ -23,7 +23,7 @@ pip install nolds
 ## Tisean Package
 
 - You must follow the Tisean [installation process](https://www.pks.mpg.de/~tisean/archive_3.0.0.html) according to your operating system. 
-- It is easier to _download binary executables_. 
+- It is easier to download binary executables. 
 - Follow [this procedure](https://www.pks.mpg.de/~tisean/Tisean_3.0.1/index.html) for **Linux users**.
 - Don't forget to add /bin file in your 'Path' (environment variables) for **Windows users** (_only thing to do_).
 
