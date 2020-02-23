@@ -23,8 +23,9 @@ pip install nolds
 ## Tisean Package
 
 - You must follow the Tisean [installation process](https://www.pks.mpg.de/~tisean/archive_3.0.0.html) according to your operating system. 
-- It is easier to _download binary executables_. 
-- Don't forget to add /bin file in your 'Path' (environment variables) for **Windows users**.
+- It is easier to download binary executables. 
+- Follow [this procedure](https://www.pks.mpg.de/~tisean/Tisean_3.0.1/index.html) for **Linux users**.
+- Don't forget to add /bin file in your 'Path' (environment variables) for **Windows users** (_only thing to do_).
 
 You should be able to see that kind of result after the installation:
 
@@ -32,5 +33,7 @@ You should be able to see that kind of result after the installation:
 
 ## Gnuplot
 
-Gnuplot is already installed in Linux environment. For Windows users, [install Gnuplot](https://sourceforge.net/projects/gnuplot/files/): 
+- Gnuplot is already installed in Linux environment. 
+
+- For Windows users, [install Gnuplot](https://sourceforge.net/projects/gnuplot/files/): 
 **Don't forget to check** _Add to 'Path' environment variables_ **option !**
