@@ -98,7 +98,7 @@ def visualization_phase_space():
     time = range(0,len(data.sigbufs[channel]))
     time = time/data.sample_frequency
 
-    f = open("temp_data.dat", "w")
+    f = open("temp_data_viz.dat", "w")
     for i in range (0, len(data.sigbufs[channel])):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
@@ -197,7 +197,7 @@ def false_nearest_phase_space():
         f.write("\n")
     f.close()
     
-    #os.system('false_nearest temp_data_fn.dat -x1000 -d5 -t200 -f5')
+    #os.system('false_nearest temp_data_fn.dat -x1000 -d15 -t200 -f5')
     
 #mutual_info_phase_space()
 false_nearest_phase_space()
