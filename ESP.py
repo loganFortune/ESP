@@ -12,28 +12,29 @@ from scipy import signal
 import numpy as np
 import PyGnuplot as gp
 import os
+from scipy.stats import linregress
 
 # MY LIBRARY
 from edf import edf_data
 
 
 def ESP_data_analysis():
+    
     data = edf_data('./Epileptic_Seizure_Data/chb07_01.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[0]))
-    time = time / data.sample_frequency
-
-    """
+    time = range(0,len(data.sigbufs[0]))
+    time = time/data.sample_frequency
+    
+ 
     # Data Visualization
     plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
     plt.xlabel('seconds')
     plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
     #plt.plot(time[0:100], data.sigbufs[0][0:100])
     plt.show()
-    """
-
+    
     """
     # Data Comparison
     fig, axs = plt.subplots(6, sharex=True, sharey=True, gridspec_kw={'hspace': 0})
@@ -61,7 +62,7 @@ def ESP_data_analysis():
     plt.tight_layout()
     plt.show()
     """
-
+    
     """
     means = []
     variances = []
@@ -75,127 +76,147 @@ def ESP_data_analysis():
     plt.plot(variances)
     plt.show()
     """
-
+    
+    """
     # Spectrogram
     powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(data.sigbufs[0], 2046, data.sample_frequency)
-
+   
     plt.title('Spectrogram')
     plt.xlabel('Time')
     plt.ylabel('Frequency')
-    plt.show()
-
-
+    plt.show()   
+    """
+    
 def visualization_phase_space():
-    # delay -d14 -m2 -o delay_output.dat temp_data.dat
-
+    
+    #delay -d14 -m2 -o delay_output.dat temp_data.dat
+    
     channel = 15
-
+    
     data = edf_data('./Epileptic_Seizure_Data/chb01_01.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel]))
-    time = time / data.sample_frequency
+    time = range(0,len(data.sigbufs[channel]))
+    time = time/data.sample_frequency
 
     f = open("temp_data_viz.dat", "w")
-    for i in range(0, len(data.sigbufs[channel])):
+    for i in range (0, len(data.sigbufs[channel])):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
-
+    
     os.system('delay -d15 -m2 -o delay_output.dat temp_data_viz.dat')
-
+    
     f = open("delay_output.dat", "r")
-
+    
     j = 0
-    x = []
-    y = []
+    x=[]
+    y=[]
     lecture = f.readlines()
     N_lignes = len(lecture)
-
-    for j in range(0, int(N_lignes / 2)):
+    
+    for j in range(0, int(N_lignes/2)):
         for i in range(0, len(lecture[j])):
-            if (lecture[j][i] == " "):
+           if(lecture[j][i]==" "):
                 c = lecture[j][0:i]
-                c2 = lecture[j][i + 1:]
+                c2 = lecture[j][i+1:]
                 x.append(float(c))
                 y.append(float(c2))
                 break
     f.close()
-
-    x_f = [x[i] for i in range(0, len(x), 20)]
-    y_f = [y[i] for i in range(0, len(y), 20)]
+    
+    x_f=[x[i] for i in range(0,len(x),20)]
+    y_f=[y[i] for i in range(0,len(y),20)]
     plt.figure()
-    plt.plot(x_f, y_f)
+    plt.plot(x_f,y_f)
     plt.show()
 
-
 def mutual_info_phase_space():
+    
     channel = 0
-
-    data = edf_data('./Epileptic_Seizure_Data/chb01_01.edf')
+    
+    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel]))
-    time = time / data.sample_frequency
+    time = range(0,len(data.sigbufs[channel]))
+    time = time/data.sample_frequency
 
     plt.figure()
 
     firstminimumfromallchannels = []
-
-    for channel_i in range(0, int(data.numberofchannels)):
-
+    
+    for channel_i in range (0, int(data.numberofchannels)):
+        
         f = open("temp_data.dat", "w")
-
-        for i in range(0, len(data.sigbufs[channel_i])):
+        
+        for i in range (0, len(data.sigbufs[channel_i])):
             f.write(str(data.sigbufs[channel_i][i]))
             f.write("\n")
         f.close()
-
-        os.system('mutual -D20 -b100 -o time_lag.mut temp_data.dat')
-
+        
+        os.system('mutual -D50 -b100 -o time_lag.mut temp_data.dat')
+        
         f = open("time_lag.mut", "r")
         j = 0
-        mut = []
+        mut=[]
         lecture = f.readlines()
         N_lignes = len(lecture)
-
+        
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
-                if (lecture[j][i] == " "):
-                    c = lecture[j][i + 1:]
+               if(lecture[j][i]==" "):
+                    c = lecture[j][i+1:]
                     mut.append(float(c))
                     break
         f.close()
-
-        for i in range(1, len(mut) - 1):
-            if (mut[i - 1] > mut[i]) and (mut[i] < mut[i + 1]):
+        
+        minimumexistence = False 
+        
+        for i in range (1, len(mut)-1):
+            if (mut[i-1] > mut[i]) and (mut[i] < mut[i+1]):
                 firstminimumfromallchannels.append(i)
+                minimumexistence = True
                 break
-
+        
+        if (minimumexistence == False):
+            firstminimumfromallchannels.append(-1)# -1 means no minimum found
+        
         plt.plot(mut)
-
+    
+    print("\n Minimums for all channels : ")
     print(firstminimumfromallchannels)
+    print("\n")
     plt.show()
-
-
+    
 def false_nearest_phase_space():
+    
     channel = 0
-
+    
     data = edf_data('./Epileptic_Seizure_Data/chb01_01.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel]))
-    time = time / data.sample_frequency
-
-    f = open("temp_data_fn.dat", "w")
-    for i in range(0, len(data.sigbufs[channel])):
+    time = range(0,len(data.sigbufs[channel]))
+    time = time/data.sample_frequency
+    
+    f = open("temp_data_fnn.dat", "w")
+    for i in range (0, len(data.sigbufs[channel])):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
-
+    
+    fnntest = 0
+    
+    if fnntest == 0:
+        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d32 -t200 -o output_data.fnn')
+    elif fnntest == 1:
+        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d21 -t200 -o output_data.fnn')
+    else:
+        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d5 -t200 -o output_data.fnn')
+        
+        
     f = open("output_data.fnn", "r")
     x = []
     y = []
@@ -217,7 +238,6 @@ def false_nearest_phase_space():
                 first = False
             if i == len(lecture[j])-1:
                 first = False
-
     print(x)
     print(y)
     f.close()
@@ -225,33 +245,52 @@ def false_nearest_phase_space():
     plt.plot(x, y)
     plt.show()
 
-    # os.system('false_nearest temp_data_fn.dat -x1000 -d15 -t200 -f5')
-
-
 def Lyapunov_exponent():
+    
+    init = 10000
+    end = 30000
     channel = 0
 
     data = edf_data('./Epileptic_Seizure_Data/chb01_01.edf')
     print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[channel]))
+    print(" Data length (number of points) :", len(data.sigbufs[channel][init:end]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel]))
+    time = range(0, len(data.sigbufs[channel][init:end]))
     time = time / data.sample_frequency
 
     f = open("temp_data_lyap.dat", "w")
-    for i in range(0, len(data.sigbufs[channel])):
+    for i in range(init, end):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
 
+    os.system('lyap_r temp_data_lyap.dat -m8 -d5 -t100 -s500 -o lyap_output.ros')
+    
     f = open("lyap_output.ros", "r")
-    x = []
-    y = []
+    lyap = []
     lecture = f.readlines()
     N_lignes = len(lecture)
 
-    # os.system('lyap_r temp_data_fn.dat -x1000 -m5 -d15 -t200 -o lyap_output.ros')
-
-
-# mutual_info_phase_space()
-false_nearest_phase_space()
+    for j in range(1, int(N_lignes)):
+            for i in range(0, len(lecture[j])):
+               if(lecture[j][i]==" "):
+                    c = lecture[j][i+1:]
+                    lyap.append(float(c))
+                    break
+    f.close()
+    
+    lenLyap= 100
+    y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
+ 
+    maxlap = linregress(y, lyap[0:lenLyap])
+    print(maxlap)
+    
+    plt.figure()
+    plt.plot(lyap)
+    plt.plot()
+    plt.show()
+    
+    
+Lyapunov_exponent()
+#mutual_info_phase_space()
+#false_nearest_phase_space()
