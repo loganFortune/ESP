@@ -19,7 +19,7 @@ from edf import edf_data
 
 
 def ESP_data_analysis():
-    data = edf_data('./Epileptic_Seizure_Data/chb07_01.edf')
+    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -29,8 +29,8 @@ def ESP_data_analysis():
     # Data Visualization
     plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
     plt.xlabel('seconds')
-    plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
-    # plt.plot(time[0:100], data.sigbufs[0][0:100])
+    #plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
+    #plt.plot(data.sigbufs[0])
     plt.show()
 
     """
@@ -132,6 +132,7 @@ def visualization_phase_space():
 
 
 def mutual_info_phase_space():
+    
     channel = 0
 
     data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
@@ -188,9 +189,29 @@ def mutual_info_phase_space():
     print("\n")
     plt.show()
 
+def space_time_separation_plot():
+    
+    channel = 0
 
+    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    print(" Data Analysis:")
+    print(" Data length (number of points) :", len(data.sigbufs[channel]))
+    print(" Data Sample Frequency (Hz) :", data.sample_frequency)
+    time = range(0, len(data.sigbufs[channel]))
+    time = time / data.sample_frequency
+
+    f = open("temp_data_stp.dat", "w")
+    for i in range(0, len(data.sigbufs[channel])):
+        f.write(str(data.sigbufs[channel][i]))
+        f.write("\n")
+    f.close()
+
+    gp.c('set terminal png size 1000,900')
+    gp.c('set output \'./stp_graph.png\'')
+    gp.c('plot "< stp temp_data_stp.dat -x1000 -%0.01 -d32 -m12 -t500"')
+    
 def false_nearest_phase_space():
-    """
+    
     channel = 0
 
     data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
@@ -206,15 +227,9 @@ def false_nearest_phase_space():
         f.write("\n")
     f.close()
 
-    fnntest = 0
-
-    if fnntest == 0:
-        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d32 -t200 -o output_data.fnn')
-    elif fnntest == 1:
-        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d21 -t200 -o output_data.fnn')
-    else:
-        os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d5 -t200 -o output_data.fnn')
-    """
+    # Be careful : time lag and embedding dimension must be inserted in the command below ! 
+    os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d32 -t200 -o output_data.fnn')
+    
 
     f = open("output_data_chb01_03.fnn", "r")
     x = []
@@ -247,11 +262,10 @@ def false_nearest_phase_space():
     plt.xticks(np.arange(3, 13, step=1))
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
-
-
+    
 def Lyapunov_exponent():
-    init = 10000
-    end = 30000
+    init = 4000
+    end = 6000
     channel = 0
 
     data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
@@ -282,18 +296,73 @@ def Lyapunov_exponent():
                 break
     f.close()
 
-    lenLyap = 100
+    lenLyap = 300
     y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
 
-    maxlap = linregress(y, lyap[0:lenLyap])
-    print(maxlap)
-
+    slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
+    x = np.arange(0, 500, step=1)
+    
+    print("Lyapunov Exponent : ", slope)
     plt.figure()
     plt.plot(lyap)
-    plt.plot()
+    plt.plot(x, intercept + slope*x, 'r', label='fitted line')
     plt.show()
 
+def Lyapunov_exponent_dynamic():
+    
+    windowlength = 10000
+    channel = 0
+    
+    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    print(" Data Analysis:")
+    print(" Data length (number of points) :", len(data.sigbufs[channel]))
+    print(" Data Sample Frequency (Hz) :", data.sample_frequency)
+    time = range(0, len(data.sigbufs[channel]))
+    time = time / data.sample_frequency    
+    
+    itwindow = 0
+    
+    LyapDyn = []
+    
+    while ((itwindow+windowlength) <  len(data.sigbufs[channel])):
+        
+        f = open("temp_data_lyap.dat", "w")
+        for i in range(itwindow, itwindow+windowlength):
+            f.write(str(data.sigbufs[channel][i]))
+            f.write("\n")
+        f.close()
+        
+        os.system('lyap_r temp_data_lyap.dat -m12 -d32 -t100 -s500 -o lyap_output.ros')
+    
+        print("\n Analysing... ", itwindow*100/len(data.sigbufs[channel]), "%")
+        
+        f = open("lyap_output.ros", "r")
+        lyap = []
+        lecture = f.readlines()
+        N_lignes = len(lecture)
+    
+        for j in range(1, int(N_lignes)):
+            for i in range(0, len(lecture[j])):
+                if lecture[j][i] == " ":
+                    c = lecture[j][i + 1:]
+                    lyap.append(float(c))
+                    break
+        f.close()
+        
+        lenLyap = 300
+        y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
+    
+        slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
+        LyapDyn.append(slope)
+        itwindow=itwindow+windowlength
+    
+    plt.figure()
+    plt.plot(LyapDyn)
 
+
+space_time_separation_plot()
+#ESP_data_analysis()
+#Lyapunov_exponent_dynamic()
 #Lyapunov_exponent()
 # mutual_info_phase_space()
-false_nearest_phase_space()
+#false_nearest_phase_space()
