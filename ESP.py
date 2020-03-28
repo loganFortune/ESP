@@ -18,24 +18,24 @@ from scipy.stats import linregress
 from edf import edf_data
 
 
-def ESP_data_analysis():
+def ESP_data_analysis(patient, channel):
     
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    data = edf_data(patient)
     print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[0]))
+    print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[0]))
+    time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
     # Data Visualization
     plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
     plt.xlabel('seconds')
-    plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
-    #plt.plot(data.sigbufs[0])
+    plt.plot(time[700000:900000], data.sigbufs[channel][700000:900000])
+    #plt.plot(data.sigbufs[channel])
     plt.show()
 
     """
-    # Data Comparison
+    # Data Comparison. The channel provided is not used !
     fig, axs = plt.subplots(6, sharex=True, sharey=True, gridspec_kw={'hspace': 0})
     fig.suptitle('Same Recording From Different Parts Of The Skull')
     axs[0].plot(data.sigbufs[0])
@@ -51,7 +51,7 @@ def ESP_data_analysis():
     """
     """
     # Spectrum
-    freqs, psd = signal.welch(data.sigbufs[0], data.sample_frequency, signal.windows.hann(8192), 8192)
+    freqs, psd = signal.welch(data.sigbufs[channel], data.sample_frequency, signal.windows.hann(8192), 8192)
 
     plt.figure(figsize=(5, 4))
     plt.semilogx(freqs, psd)
@@ -67,9 +67,9 @@ def ESP_data_analysis():
     variances = []
     window_length = 8192
     
-    for i in range (0, int(len(data.sigbufs[0])/window_length)):
-        means.append(np.mean(data.sigbufs[0][i*window_length:(i+1)*window_length]))
-        variances.append(np.cov(data.sigbufs[0][i*window_length:(i+1)*window_length]))
+    for i in range (0, int(len(data.sigbufs[channel])/window_length)):
+        means.append(np.mean(data.sigbufs[channel][i*window_length:(i+1)*window_length]))
+        variances.append(np.cov(data.sigbufs[channel][i*window_length:(i+1)*window_length]))
         
     plt.title('Running Variances Over The Entire Time Series')
     plt.plot(variances)
@@ -78,7 +78,7 @@ def ESP_data_analysis():
 
     """
     # Spectrogram
-    powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(data.sigbufs[0], 2046, data.sample_frequency)
+    powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(data.sigbufs[channel], 2046, data.sample_frequency)
    
     plt.title('Spectrogram')
     plt.xlabel('Time')
@@ -86,11 +86,10 @@ def ESP_data_analysis():
     plt.show()   
     """
 
-def visualization_phase_space():
-    
-    channel = 11
+def visualization_phase_space(patient, channel, useowndelay = False, delay=5):
 
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    # Write Data in a file : temp_data_viz.dat
+    data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -102,27 +101,12 @@ def visualization_phase_space():
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
-
-    os.system('delay -d30 -m2 -o delay_output.dat temp_data_viz.dat')
+    
+    # Launch Autocorrelation Measurement 
+    
     os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
     
-    f = open("delay_output.dat", "r")
-
-    x = []
-    y = []
-    lecture = f.readlines()
-    N_lignes = len(lecture)
-
-    for j in range(0, int(N_lignes / 2)):
-        for i in range(0, len(lecture[j])):
-            if (lecture[j][i] == " "):
-                c = lecture[j][0:i]
-                c2 = lecture[j][i + 1:]
-                x.append(float(c))
-                y.append(float(c2))
-                break
-    f.close()
-    
+    # Result Analysis
     f = open("temp_data_viz.dat_co", "r")
     
     i_corr = 0
@@ -143,9 +127,7 @@ def visualization_phase_space():
                continue
             if (lecture[j][i] == " ") and (blankspacefound == True):
                 c = lecture[j][i_corr:i]
-                #print("c=",c)
                 c2 = lecture[j][i+1:]
-                #print("c2 =",c2)
                 x_corr.append(float(c))
                 y_corr.append(float(c2))
                 if (float(c2) < 0 and timelaginfzerofirst == False):
@@ -155,7 +137,31 @@ def visualization_phase_space():
                 break
     f.close()
 
-    print("Time Lag :", timelag_autocorr)
+    print(" Autocor --> Time Lag :", timelag_autocorr)
+    
+    if (useowndelay==True):
+        command1 = 'delay -d'+str(delay)+' -m2 -o delay_output.dat temp_data_viz.dat'
+    else:
+        command1 = 'delay -d'+str(timelag_autocorr)+' -m2 -o delay_output.dat temp_data_viz.dat'
+    
+    os.system(command1)
+    
+    f = open("delay_output.dat", "r")
+
+    x = []
+    y = []
+    lecture = f.readlines()
+    N_lignes = len(lecture)
+
+    for j in range(0, int(N_lignes / 2)):
+        for i in range(0, len(lecture[j])):
+            if (lecture[j][i] == " "):
+                c = lecture[j][0:i]
+                c2 = lecture[j][i + 1:]
+                x.append(float(c))
+                y.append(float(c2))
+                break
+    f.close()
     
     x_f = [x[i] for i in range(0, len(x), 20)]
     y_f = [y[i] for i in range(0, len(y), 20)]
@@ -396,9 +402,12 @@ def Lyapunov_exponent_dynamic():
     plt.plot(LyapDyn)
 
 
-visualization_phase_space()
+patient = './Epileptic_Seizure_Data/chb01_03.edf'
+channel = 19
+delay = 50
+#ESP_data_analysis(patient, channel)
+visualization_phase_space(patient, channel)
 #space_time_separation_plot()
-#ESP_data_analysis()
 #Lyapunov_exponent_dynamic()
 #Lyapunov_exponent()
 #mutual_info_phase_space()
