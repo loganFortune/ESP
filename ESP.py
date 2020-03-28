@@ -19,6 +19,7 @@ from edf import edf_data
 
 
 def ESP_data_analysis():
+    
     data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
@@ -29,7 +30,7 @@ def ESP_data_analysis():
     # Data Visualization
     plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
     plt.xlabel('seconds')
-    #plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
+    plt.plot(time[700000:900000], data.sigbufs[0][700000:900000])
     #plt.plot(data.sigbufs[0])
     plt.show()
 
@@ -85,13 +86,11 @@ def ESP_data_analysis():
     plt.show()   
     """
 
-
 def visualization_phase_space():
-    # delay -d14 -m2 -o delay_output.dat temp_data.dat
+    
+    channel = 11
 
-    channel = 15
-
-    data = edf_data('./Epileptic_Seizure_Data/chb01_01.edf')
+    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -104,11 +103,11 @@ def visualization_phase_space():
         f.write("\n")
     f.close()
 
-    os.system('delay -d15 -m2 -o delay_output.dat temp_data_viz.dat')
-
+    os.system('delay -d30 -m2 -o delay_output.dat temp_data_viz.dat')
+    os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
+    
     f = open("delay_output.dat", "r")
 
-    j = 0
     x = []
     y = []
     lecture = f.readlines()
@@ -123,11 +122,47 @@ def visualization_phase_space():
                 y.append(float(c2))
                 break
     f.close()
+    
+    f = open("temp_data_viz.dat_co", "r")
+    
+    i_corr = 0
+    timelag_autocorr = 0
+    timelaginfzerofirst = False
+    
+    x_corr = []
+    y_corr = []
+    lecture = f.readlines()
+    N_lignes = len(lecture)
+    blankspacefound = False
+    
+    for j in range(0, 100):
+        for i in range(0, len(lecture[j])):
+            if (lecture[j][i] != " ") and (blankspacefound == False):
+               i_corr = i
+               blankspacefound = True
+               continue
+            if (lecture[j][i] == " ") and (blankspacefound == True):
+                c = lecture[j][i_corr:i]
+                #print("c=",c)
+                c2 = lecture[j][i+1:]
+                #print("c2 =",c2)
+                x_corr.append(float(c))
+                y_corr.append(float(c2))
+                if (float(c2) < 0 and timelaginfzerofirst == False):
+                    timelaginfzerofirst = True
+                    timelag_autocorr = j-1
+                blankspacefound = False
+                break
+    f.close()
 
+    print("Time Lag :", timelag_autocorr)
+    
     x_f = [x[i] for i in range(0, len(x), 20)]
     y_f = [y[i] for i in range(0, len(y), 20)]
-    plt.figure()
+    plt.figure(1)
     plt.plot(x_f, y_f)
+    plt.figure(2)
+    plt.plot(x_corr, y_corr)
     plt.show()
 
 
@@ -208,7 +243,9 @@ def space_time_separation_plot():
 
     gp.c('set terminal png size 1000,900')
     gp.c('set output \'./stp_graph.png\'')
-    gp.c('plot "< stp temp_data_stp.dat -x1000 -%0.01 -d32 -m12 -t500"')
+    gp.c('plot "< stp temp_data_stp.dat -x1000 -%0.01 -d39 -m20 -t500"')
+    
+    print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
     
 def false_nearest_phase_space():
     
@@ -228,9 +265,8 @@ def false_nearest_phase_space():
     f.close()
 
     # Be careful : time lag and embedding dimension must be inserted in the command below ! 
-    os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,12 -d32 -t200 -o output_data.fnn')
+    os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,20 -d32 -t100 -o output_data_chb01_03.fnn')
     
-
     f = open("output_data_chb01_03.fnn", "r")
     x = []
     y = []
@@ -360,9 +396,10 @@ def Lyapunov_exponent_dynamic():
     plt.plot(LyapDyn)
 
 
-space_time_separation_plot()
+visualization_phase_space()
+#space_time_separation_plot()
 #ESP_data_analysis()
 #Lyapunov_exponent_dynamic()
 #Lyapunov_exponent()
-# mutual_info_phase_space()
+#mutual_info_phase_space()
 #false_nearest_phase_space()
