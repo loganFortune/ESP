@@ -342,7 +342,7 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     print(y)
     f.close()
     plt.figure()
-    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient:'+patient
+    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient/Exp:'+patient
     plt.title(titlespec)
     plt.xlabel('Dimension')
     plt.ylabel('Fraction of false neighbors (%)')
@@ -350,13 +350,11 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
     
-def Lyapunov_exponent():
-    
-    init = 4000
-    end = 6000
-    channel = 0
+def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, init=4000, windowlength=10000):
 
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    end = init + windowlength
+    
+    data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel][init:end]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -369,7 +367,9 @@ def Lyapunov_exponent():
         f.write("\n")
     f.close()
 
-    os.system('lyap_r temp_data_lyap.dat -m12 -d32 -t100 -s500 -o lyap_output.ros')
+    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,"/",delay,"/", theilerwindow)
+    command = 'lyap_r temp_data_lyap.dat -m'+str(dimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -s500 -o lyap_output.ros'
+    os.system(command)
 
     f = open("lyap_output.ros", "r")
     lyap = []
@@ -383,25 +383,26 @@ def Lyapunov_exponent():
                 lyap.append(float(c))
                 break
     f.close()
-
+    
+    if(len(lyap)==0):
+        print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
+        return
+    
     lenLyap = 300
     y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
 
     slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
     x = np.arange(0, 500, step=1)
     
-    print("Lyapunov Exponent : ", slope)
+    print(" Lyapunov Exponent : ", slope)
     plt.figure()
     plt.plot(lyap)
     plt.plot(x, intercept + slope*x, 'r', label='fitted line')
     plt.show()
 
-def Lyapunov_exponent_dynamic():
-    
-    windowlength = 10000
-    channel = 0
-    
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+def Dynamic_Lyapunov_exponent(patient, channel, dimension = 5, delay = 5, theilerwindow = 100, windowlength=10000):
+
+    data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -420,7 +421,8 @@ def Lyapunov_exponent_dynamic():
             f.write("\n")
         f.close()
         
-        os.system('lyap_r temp_data_lyap.dat -m12 -d32 -t100 -s500 -o lyap_output.ros')
+        command = 'lyap_r temp_data_lyap.dat -m'+str(dimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -s500 -o lyap_output.ros'
+        os.system(command)
     
         print("\n Analysing... ", itwindow*100/len(data.sigbufs[channel]), "%")
         
@@ -453,10 +455,13 @@ channel = 11
 delay = 59
 maximumdimension = 20
 theilerwindow = 200
+dimension = 18
+init = 4000
+windowlength = 40000
 #ESP_data_analysis(patient, channel)
 #visualization_phase_space(patient, channel, False, delay)
 #autocor_mutual_info_phase_space(patient)
 #space_time_separation_plot(patient, channel)
-false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow)
-#Lyapunov_exponent_dynamic()
-#Lyapunov_exponent()
+#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow)
+#Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, init, windowlength)
+Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
