@@ -89,6 +89,7 @@ def ESP_data_analysis(patient, channel):
 def visualization_phase_space(patient, channel, useowndelay = False, delay=5):
 
     # Write Data in a file : temp_data_viz.dat
+    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -106,7 +107,8 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5):
     
     os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
     
-    # Result Analysis
+    # Autocor Results Analysis
+    
     f = open("temp_data_viz.dat_co", "r")
     
     i_corr = 0
@@ -138,6 +140,8 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5):
     f.close()
 
     print(" Autocor --> Time Lag :", timelag_autocorr)
+    
+    # Phase Space 2D-Time Lag representation 
     
     if (useowndelay==True):
         command1 = 'delay -d'+str(delay)+' -m2 -o delay_output.dat temp_data_viz.dat'
@@ -172,33 +176,38 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5):
     plt.show()
 
 
-def mutual_info_phase_space():
+def autocor_mutual_info_phase_space(patient):
     
-    channel = 0
-
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    data = edf_data(patient)
     print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[channel]))
+    print(" Data length (number of points) :", len(data.sigbufs[0]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel]))
+    time = range(0, len(data.sigbufs[0]))
     time = time / data.sample_frequency
 
+    print(" Mutual Information & Autocor Algorithms loading...")
+    
     plt.figure()
-
+    
     firstminimumfromallchannels = []
+    timelag_autocorr = []
 
     for channel_i in range(0, int(data.numberofchannels)):
 
-        f = open("temp_data.dat", "w")
+        # Store data from the specific channel
+        f = open("temp_data_viz.dat", "w")
 
         for i in range(0, len(data.sigbufs[channel_i])):
             f.write(str(data.sigbufs[channel_i][i]))
             f.write("\n")
         f.close()
 
-        os.system('mutual -D50 -b100 -o time_lag.mut temp_data.dat')
-
-        f = open("time_lag.mut", "r")
+        # Launch System Command
+        os.system('mutual -D200 -b100 -o delay_output.dat temp_data_viz.dat')
+        os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
+        
+        # Mutual Info Analysis
+        f = open("delay_output.dat", "r")
         j = 0
         mut = []
         lecture = f.readlines()
@@ -224,17 +233,52 @@ def mutual_info_phase_space():
             firstminimumfromallchannels.append(-1)  # -1 means no minimum found
 
         plt.plot(mut)
+        
+        # Autocorr Analysis
+        f = open("temp_data_viz.dat_co", "r")
+    
+        i_corr = 0
+        timelaginfzerofirst = False
+        
+        x_corr = []
+        y_corr = []
+        lecture = f.readlines()
+        N_lignes = len(lecture)
+        blankspacefound = False
+        
+        for j in range(0, 100):
+            for i in range(0, len(lecture[j])):
+                if (lecture[j][i] != " ") and (blankspacefound == False):
+                   i_corr = i
+                   blankspacefound = True
+                   continue
+                if (lecture[j][i] == " ") and (blankspacefound == True):
+                    c = lecture[j][i_corr:i]
+                    c2 = lecture[j][i+1:]
+                    x_corr.append(float(c))
+                    y_corr.append(float(c2))
+                    if (float(c2) < 0 and timelaginfzerofirst == False):
+                        timelaginfzerofirst = True
+                        timelag_autocorr.append(j-1)
+                    blankspacefound = False
+                    break
+        f.close()
 
-    print("\n Minimums for all channels : ")
+    
+    print("\n Mutual First Minimums for all channels : ")
     print(firstminimumfromallchannels)
     print("\n")
+    print(" Autocor - Index Crossing Zero :")
+    print(timelag_autocorr)
+    print("\n")
+
     plt.show()
-
-def space_time_separation_plot():
     
-    channel = 0
+    print(" For more precisions, use the \'visualization_phase_space\' function.")
 
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+def space_time_separation_plot(patient, channel):
+
+    data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -253,11 +297,9 @@ def space_time_separation_plot():
     
     print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
     
-def false_nearest_phase_space():
-    
-    channel = 0
+def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5, theilerwindow = 100):
 
-    data = edf_data('./Epileptic_Seizure_Data/chb01_03.edf')
+    data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -271,9 +313,10 @@ def false_nearest_phase_space():
     f.close()
 
     # Be careful : time lag and embedding dimension must be inserted in the command below ! 
-    os.system('false_nearest temp_data_fnn.dat -x1000 -m3 -M1,20 -d32 -t100 -o output_data_chb01_03.fnn')
+    command = 'false_nearest temp_data_fnn.dat -x1000 -m3 -M1,'+str(maximumdimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -o output_data_FNN.fnn'
+    os.system(command)
     
-    f = open("output_data_chb01_03.fnn", "r")
+    f = open("output_data_FNN.fnn", "r")
     x = []
     y = []
     lecture = f.readlines()
@@ -294,18 +337,21 @@ def false_nearest_phase_space():
                 first = False
             if i == len(lecture[j]) - 1:
                 first = False
+    
     print(x)
     print(y)
     f.close()
     plt.figure()
-    plt.title('Find the Embedding dimension with the False Neighbours method \n Channel 01_03')
+    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient:'+patient
+    plt.title(titlespec)
     plt.xlabel('Dimension')
     plt.ylabel('Fraction of false neighbors (%)')
-    plt.xticks(np.arange(3, 13, step=1))
+    plt.xticks(np.arange(3, maximumdimension+1, step=1))
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
     
 def Lyapunov_exponent():
+    
     init = 4000
     end = 6000
     channel = 0
@@ -403,12 +449,14 @@ def Lyapunov_exponent_dynamic():
 
 
 patient = './Epileptic_Seizure_Data/chb01_03.edf'
-channel = 19
-delay = 50
+channel = 11
+delay = 59
+maximumdimension = 20
+theilerwindow = 200
 #ESP_data_analysis(patient, channel)
-visualization_phase_space(patient, channel)
-#space_time_separation_plot()
+#visualization_phase_space(patient, channel, False, delay)
+#autocor_mutual_info_phase_space(patient)
+#space_time_separation_plot(patient, channel)
+false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow)
 #Lyapunov_exponent_dynamic()
 #Lyapunov_exponent()
-#mutual_info_phase_space()
-#false_nearest_phase_space()
