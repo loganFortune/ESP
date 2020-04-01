@@ -19,7 +19,6 @@ from edf import edf_data
 
 
 def ESP_data_analysis(patient, channel):
-    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -85,10 +84,10 @@ def ESP_data_analysis(patient, channel):
     plt.show()   
     """
 
-def visualization_phase_space(patient, channel, useowndelay = False, delay=5, timeinitsec = 0, timeendsec = -1):
 
+def visualization_phase_space(patient, channel, useowndelay=False, delay=5, timeinitsec=0, timeendsec=-1):
     # Write Data in a file : temp_data_viz.dat
-    
+
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -96,69 +95,68 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5, ti
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
-    if(timeinitsec != 0):
-            timeinitsec = timeinitsec*data.sample_frequency
-    if(timeendsec == -1):
-            timeendsec=len(data.sigbufs[channel])
-    if(timeendsec != -1):
-            timeendsec = timeendsec*data.sample_frequency
-            
+    if timeinitsec != 0:
+        timeinitsec = timeinitsec * data.sample_frequency
+    if timeendsec == -1:
+        timeendsec = len(data.sigbufs[channel]) - 1
+    elif timeendsec != -1:
+        timeendsec = timeendsec * data.sample_frequency
+
     print(" Data used between ", timeinitsec, "and ", timeendsec)
-    
-    
+
     f = open("temp_data_viz.dat", "w")
     for i in range(timeinitsec, timeendsec):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
-    
+
     # Launch Autocorrelation Measurement 
-    
+
     os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
-    
+
     # Autocor Results Analysis
-    
+
     f = open("temp_data_viz.dat_co", "r")
-    
+
     i_corr = 0
     timelag_autocorr = 0
     timelaginfzerofirst = False
-    
+
     x_corr = []
     y_corr = []
     lecture = f.readlines()
     N_lignes = len(lecture)
     blankspacefound = False
-    
+
     for j in range(0, 100):
         for i in range(0, len(lecture[j])):
-            if (lecture[j][i] != " ") and (blankspacefound == False):
-               i_corr = i
-               blankspacefound = True
-               continue
-            if (lecture[j][i] == " ") and (blankspacefound == True):
+            if (lecture[j][i] != " ") and not blankspacefound:
+                i_corr = i
+                blankspacefound = True
+                continue
+            if (lecture[j][i] == " ") and blankspacefound:
                 c = lecture[j][i_corr:i]
-                c2 = lecture[j][i+1:]
+                c2 = lecture[j][i + 1:]
                 x_corr.append(float(c))
                 y_corr.append(float(c2))
-                if (float(c2) < 0 and timelaginfzerofirst == False):
+                if float(c2) < 0 and not timelaginfzerofirst:
                     timelaginfzerofirst = True
-                    timelag_autocorr = j-1
+                    timelag_autocorr = j - 1
                 blankspacefound = False
                 break
     f.close()
 
     print(" Autocor --> Time Lag :", timelag_autocorr)
-    
+
     # Phase Space 2D-Time Lag representation 
-    
-    if (useowndelay==True):
-        command1 = 'delay -d'+str(delay)+' -m2 -o delay_output.dat temp_data_viz.dat'
+
+    if useowndelay:
+        command1 = 'delay -d' + str(delay) + ' -m2 -o delay_output.dat temp_data_viz.dat'
     else:
-        command1 = 'delay -d'+str(timelag_autocorr)+' -m2 -o delay_output.dat temp_data_viz.dat'
-    
+        command1 = 'delay -d' + str(timelag_autocorr) + ' -m2 -o delay_output.dat temp_data_viz.dat'
+
     os.system(command1)
-    
+
     f = open("delay_output.dat", "r")
 
     x = []
@@ -168,14 +166,14 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5, ti
 
     for j in range(0, int(N_lignes / 2)):
         for i in range(0, len(lecture[j])):
-            if (lecture[j][i] == " "):
+            if lecture[j][i] == " ":
                 c = lecture[j][0:i]
                 c2 = lecture[j][i + 1:]
                 x.append(float(c))
                 y.append(float(c2))
                 break
     f.close()
-    
+
     x_f = [x[i] for i in range(0, len(x), 20)]
     y_f = [y[i] for i in range(0, len(y), 20)]
     plt.figure(1)
@@ -186,7 +184,6 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5, ti
 
 
 def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
-    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
@@ -194,31 +191,26 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
     time = range(0, len(data.sigbufs[0]))
     time = time / data.sample_frequency
 
-    if(timeinitsec != 0):
-            timeinitsec = timeinitsec*data.sample_frequency
-    if(timeendsec == -1):
-            timeendsec =len(data.sigbufs[channel])
-    if(timeendsec != -1):
-            timeendsec = timeendsec*data.sample_frequency
-            
+    if timeinitsec != 0:
+        timeinitsec = timeinitsec * data.sample_frequency
+    if timeendsec == -1:
+        timeendsec = len(data.sigbufs[channel]) - 1
+    elif timeendsec != -1:
+        timeendsec = timeendsec * data.sample_frequency
+
     print(" Data used between ", timeinitsec, "and ", timeendsec)
-    print(" Mutual Information & Autocor Algorithms for patient ",patient," ...")
-    
+    print(" Mutual Information & Autocor Algorithms for patient ", patient, " ...")
+
     plt.figure()
-    
+
     firstminimumfromallchannels = []
     timelag_autocorr = []
-    
+
     # Autocor and Mutual Info Computation for all channels
-    
     for channel_i in range(0, int(data.numberofchannels)):
 
         # Store data from the specific channel
         f = open("temp_data_viz.dat", "w")
-
-        if(timeendsec==-1):
-            timeendsec = len(data.sigbufs[channel_i])
-            
         for i in range(timeinitsec, timeendsec):
             f.write(str(data.sigbufs[channel_i][i]))
             f.write("\n")
@@ -227,7 +219,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
         # Launch System Command
         os.system('mutual -D100 -b100 -o delay_output.dat temp_data_viz.dat')
         os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
-        
+
         # Mutual Info Analysis
         f = open("delay_output.dat", "r")
         j = 0
@@ -237,7 +229,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
 
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
-                if (lecture[j][i] == " "):
+                if lecture[j][i] == " ":
                     c = lecture[j][i + 1:]
                     mut.append(float(c))
                     break
@@ -246,46 +238,45 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
         minimumexistence = False
 
         for i in range(1, len(mut) - 1):
-            if (mut[i - 1] > mut[i]) and (mut[i] < mut[i + 1]) and (minimumexistence==False):
+            if (mut[i - 1] > mut[i]) and (mut[i] < mut[i + 1]) and (minimumexistence == False):
                 firstminimumfromallchannels.append(i)
                 minimumexistence = True
 
-        if (minimumexistence == False):
+        if not minimumexistence:
             firstminimumfromallchannels.append(-1)  # -1 means no minimum found
 
         plt.plot(mut)
-        
+
         # Autocorr Analysis
         f = open("temp_data_viz.dat_co", "r")
-    
+
         i_corr = 0
         timelaginfzerofirst = False
-        
+
         x_corr = []
         y_corr = []
         lecture = f.readlines()
         N_lignes = len(lecture)
         blankspacefound = False
-        
+
         for j in range(0, 100):
             for i in range(0, len(lecture[j])):
                 if (lecture[j][i] != " ") and (blankspacefound == False):
-                   i_corr = i
-                   blankspacefound = True
-                   continue
+                    i_corr = i
+                    blankspacefound = True
+                    continue
                 if (lecture[j][i] == " ") and (blankspacefound == True):
                     c = lecture[j][i_corr:i]
-                    c2 = lecture[j][i+1:]
+                    c2 = lecture[j][i + 1:]
                     x_corr.append(float(c))
                     y_corr.append(float(c2))
-                    if (float(c2) < 0 and timelaginfzerofirst == False):
+                    if float(c2) < 0 and timelaginfzerofirst == False:
                         timelaginfzerofirst = True
-                        timelag_autocorr.append(j-1)
+                        timelag_autocorr.append(j - 1)
                     blankspacefound = False
                     break
         f.close()
 
-    
     print("\n Mutual First Minimums for all channels : ")
     print(firstminimumfromallchannels)
     print("\n")
@@ -294,11 +285,11 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
     print("\n")
 
     plt.show()
-    
+
     print(" For more precisions, use the \'visualization_phase_space\' function.")
 
-def space_time_separation_plot(patient, channel):
 
+def space_time_separation_plot(patient, channel):
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -315,11 +306,12 @@ def space_time_separation_plot(patient, channel):
     gp.c('set terminal png size 1000,900')
     gp.c('set output \'./stp_graph.png\'')
     gp.c('plot "< stp temp_data_stp.dat -x1000 -%0.01 -d39 -m20 -t500"')
-    
-    print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
-    
-def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5, theilerwindow = 100, timeinitsec = 0, timeendsec = -1):
 
+    print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
+
+
+def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, theilerwindow=100, timeinitsec=0,
+                              timeendsec=-1):
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -327,15 +319,15 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
-    if(timeinitsec != 0):
-            timeinitsec = timeinitsec*data.sample_frequency
-    if(timeendsec == -1):
-            timeendsec=len(data.sigbufs[channel])
-    if(timeendsec != -1):
-            timeendsec = timeendsec*data.sample_frequency
-            
+    if timeinitsec != 0:
+        timeinitsec = timeinitsec * data.sample_frequency
+    if timeendsec == -1:
+        timeendsec = len(data.sigbufs[channel]) - 1
+    elif timeendsec != -1:
+        timeendsec = timeendsec * data.sample_frequency
+
     print(" Data used between ", timeinitsec, "and ", timeendsec)
-        
+
     f = open("temp_data_fnn.dat", "w")
     for i in range(timeinitsec, timeendsec):
         f.write(str(data.sigbufs[channel][i]))
@@ -343,9 +335,10 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     f.close()
 
     # Be careful : time lag and embedding dimension must be inserted in the command below ! 
-    command = 'false_nearest temp_data_fnn.dat -x1000 -m3 -M1,'+str(maximumdimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -o output_data_FNN.fnn'
+    command = 'false_nearest temp_data_fnn.dat -x1000 -m3 -M1,' + str(maximumdimension) + ' -d' + str(
+        delay) + ' -t' + str(theilerwindow) + ' -o output_data_FNN.fnn'
     os.system(command)
-    
+
     f = open("output_data_FNN.fnn", "r")
     x = []
     y = []
@@ -363,46 +356,49 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
                 dim = lecture[j][0:first_i]
                 ratio = lecture[j][first_i + 1: i]
                 x.append(int(dim))
-                y.append(float(ratio)*100.)
+                y.append(float(ratio) * 100.)
                 first = False
             if i == len(lecture[j]) - 1:
                 first = False
-    
+
     print(x)
     print(y)
     f.close()
     plt.figure()
-    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient/Experience:'+patient
+    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient/Experience:' + patient
     plt.title(titlespec)
     plt.xlabel('Dimension')
     plt.ylabel('Fraction of false neighbors (%)')
-    plt.xticks(np.arange(3, maximumdimension+1, step=1))
+    plt.xticks(np.arange(3, maximumdimension + 1, step=1))
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
-    
-def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec = 200, windowlengthsec = 300):
-        
+
+
+def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=200,
+                                    windowlengthsec=300):
     data = edf_data(patient)
-    
-    end = (initsec + windowlengthsec)*data.sample_frequency
-    initsec = initsec*data.sample_frequency
-    
+
+    end = (initsec + windowlengthsec) * data.sample_frequency
+    initsec = initsec * data.sample_frequency
+
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel][initsec:end]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
     time = range(0, len(data.sigbufs[channel][initsec:end]))
     time = time / data.sample_frequency
-    
-    print(" Data used between ", initsec," and ", end)
-        
+
+    print(" Data used between ", initsec, " and ", end)
+
     f = open("temp_data_lyap.dat", "w")
     for i in range(initsec, end):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
 
-    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,"/",delay,"/", theilerwindow)
-    command = 'lyap_r temp_data_lyap.dat -m'+str(dimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -s500 -o lyap_output.ros'
+    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,
+          "/", delay, "/", theilerwindow)
+    command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
+        theilerwindow) + ' -s500 -o lyap_output.ros'
     os.system(command)
 
     f = open("lyap_output.ros", "r")
@@ -417,54 +413,56 @@ def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
                 lyap.append(float(c))
                 break
     f.close()
-    
-    if(len(lyap)==0):
-        print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
+
+    if len(lyap) == 0:
+        print(
+            " There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
         return
-    
+
     lenLyap = 300
     y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
 
     slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
     x = np.arange(0, 500, step=1)
-    
+
     print(" Lyapunov Exponent : ", slope)
     plt.figure()
     plt.plot(lyap)
-    plt.plot(x, intercept + slope*x, 'r', label='fitted line')
+    plt.plot(x, intercept + slope * x, 'r', label='fitted line')
     plt.show()
 
-def Dynamic_Lyapunov_exponent(patient, channel, dimension = 5, delay = 5, theilerwindow = 100, windowlength=10000):
 
+def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000):
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
     time = range(0, len(data.sigbufs[channel]))
-    time = time / data.sample_frequency    
-    
+    time = time / data.sample_frequency
+
     itwindow = 0
-    
+
     LyapDyn = []
-    
-    while ((itwindow+windowlength) <  len(data.sigbufs[channel])):
-        
+
+    while (itwindow + windowlength) < len(data.sigbufs[channel]):
+
         f = open("temp_data_lyap.dat", "w")
-        for i in range(itwindow, itwindow+windowlength):
+        for i in range(itwindow, itwindow + windowlength):
             f.write(str(data.sigbufs[channel][i]))
             f.write("\n")
         f.close()
-        
-        command = 'lyap_r temp_data_lyap.dat -m'+str(dimension)+' -d'+str(delay)+' -t'+str(theilerwindow)+' -s500 -o lyap_output.ros'
+
+        command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
+            theilerwindow) + ' -s500 -o lyap_output.ros'
         os.system(command)
-    
-        print("\n Analysing... ", itwindow*100/len(data.sigbufs[channel]), "%")
-        
+
+        print("\n Analysing... ", itwindow * 100 / len(data.sigbufs[channel]), "%")
+
         f = open("lyap_output.ros", "r")
         lyap = []
         lecture = f.readlines()
         N_lignes = len(lecture)
-    
+
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
                 if lecture[j][i] == " ":
@@ -472,16 +470,17 @@ def Dynamic_Lyapunov_exponent(patient, channel, dimension = 5, delay = 5, theile
                     lyap.append(float(c))
                     break
         f.close()
-        
+
         lenLyap = 300
         y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
-    
+
         slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
         LyapDyn.append(slope)
-        itwindow=itwindow+windowlength
-    
+        itwindow = itwindow + windowlength
+
     plt.figure()
     plt.plot(LyapDyn)
+
 
 """
     
@@ -490,17 +489,47 @@ def Dynamic_Lyapunov_exponent(patient, channel, dimension = 5, delay = 5, theile
 """
 
 patient = './Epileptic_Seizure_Data/chb01_03.edf'
-channel = 0
-delay = 44
-maximumdimension = 30
 theilerwindow = 200
-dimension = 8
-initsec = 200 
+initsec = 200
 windowlengthsec = 100
 
-#autocor_mutual_info_phase_space(patient, 2996, 3036)
-#visualization_phase_space(patient, channel, False, delay, 2996, 3036)
-#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 2996, 3036)
-#space_time_separation_plot(patient, channel)
-Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
-#Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
+#  Seizure
+start_time = 2996
+end_time = 3036
+channel = 0
+delay = 34
+maximumdimension = 33
+dimension = 30
+# autocor_mutual_info_phase_space(patient, start_time, end_time)
+# visualization_phase_space(patient, channel, False, delay, start_time, end_time)
+# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
+# Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+
+# Preictal
+start_time = 0
+end_time = 2995
+channel = 0
+delay = 49
+maximumdimension = 33
+# autocor_mutual_info_phase_space(patient, start_time, end_time)
+# visualization_phase_space(patient, channel, False, delay, start_time, end_time)
+# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
+
+#  Postictal
+start_time = 3037
+end_time = -1
+channel = 0
+delay = 34
+maximumdimension = 33
+dimension = 30
+#autocor_mutual_info_phase_space(patient, start_time, end_time)
+#visualization_phase_space(patient, channel, False, delay, start_time, end_time)
+#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
+#Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+
+# autocor_mutual_info_phase_space(patient, 2996, 3036)
+# visualization_phase_space(patient, channel, False, delay, 2996, 3036)
+# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 2996, 3036)
+# space_time_separation_plot(patient, channel)
+# Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+# Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
