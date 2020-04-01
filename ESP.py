@@ -30,8 +30,7 @@ def ESP_data_analysis(patient, channel):
     # Data Visualization
     plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
     plt.xlabel('seconds')
-    plt.plot(time[700000:900000], data.sigbufs[channel][700000:900000])
-    #plt.plot(data.sigbufs[channel])
+    plt.plot(data.sigbufs[channel])
     plt.show()
 
     """
@@ -86,7 +85,7 @@ def ESP_data_analysis(patient, channel):
     plt.show()   
     """
 
-def visualization_phase_space(patient, channel, useowndelay = False, delay=5, timeinit = 0, timeend = -1):
+def visualization_phase_space(patient, channel, useowndelay = False, delay=5, timeinitsec = 0, timeendsec = -1):
 
     # Write Data in a file : temp_data_viz.dat
     
@@ -97,13 +96,18 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5, ti
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
-    if (timeend != -1 or timeinit != 0):
-        print(" Data used between ", timeinit, "and ", timeend)
-    else:
-        timeend=len(data.sigbufs[channel])
+    if(timeinitsec != 0):
+            timeinitsec = timeinitsec*data.sample_frequency
+    if(timeendsec == -1):
+            timeendsec=len(data.sigbufs[channel])
+    if(timeendsec != -1):
+            timeendsec = timeendsec*data.sample_frequency
+            
+    print(" Data used between ", timeinitsec, "and ", timeendsec)
+    
     
     f = open("temp_data_viz.dat", "w")
-    for i in range(timeinit, timeend):
+    for i in range(timeinitsec, timeendsec):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -181,7 +185,7 @@ def visualization_phase_space(patient, channel, useowndelay = False, delay=5, ti
     plt.show()
 
 
-def autocor_mutual_info_phase_space(patient, timeinit=0, timeend=-1):
+def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
     
     data = edf_data(patient)
     print(" Data Analysis:")
@@ -190,9 +194,14 @@ def autocor_mutual_info_phase_space(patient, timeinit=0, timeend=-1):
     time = range(0, len(data.sigbufs[0]))
     time = time / data.sample_frequency
 
-    if(timeinit != 0 or timeend != -1):
-        print(" Data used between ", timeinit, "and ", timeend)
-        
+    if(timeinitsec != 0):
+            timeinitsec = timeinitsec*data.sample_frequency
+    if(timeendsec == -1):
+            timeendsec =len(data.sigbufs[channel])
+    if(timeendsec != -1):
+            timeendsec = timeendsec*data.sample_frequency
+            
+    print(" Data used between ", timeinitsec, "and ", timeendsec)
     print(" Mutual Information & Autocor Algorithms for patient ",patient," ...")
     
     plt.figure()
@@ -207,10 +216,10 @@ def autocor_mutual_info_phase_space(patient, timeinit=0, timeend=-1):
         # Store data from the specific channel
         f = open("temp_data_viz.dat", "w")
 
-        if(timeend==-1):
-            timeend = len(data.sigbufs[channel_i])
+        if(timeendsec==-1):
+            timeendsec = len(data.sigbufs[channel_i])
             
-        for i in range(timeinit, timeend):
+        for i in range(timeinitsec, timeendsec):
             f.write(str(data.sigbufs[channel_i][i]))
             f.write("\n")
         f.close()
@@ -309,7 +318,7 @@ def space_time_separation_plot(patient, channel):
     
     print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
     
-def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5, theilerwindow = 100, timeinit = 0, timeend= -1):
+def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5, theilerwindow = 100, timeinitsec = 0, timeendsec = -1):
 
     data = edf_data(patient)
     print(" Data Analysis:")
@@ -318,13 +327,17 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
-    if (timeend != -1 or timeinit != 0):
-        print(" Data used between ", timeinit, "and ", timeend)
-    else:
-        timeend=len(data.sigbufs[channel])
+    if(timeinitsec != 0):
+            timeinitsec = timeinitsec*data.sample_frequency
+    if(timeendsec == -1):
+            timeendsec=len(data.sigbufs[channel])
+    if(timeendsec != -1):
+            timeendsec = timeendsec*data.sample_frequency
+            
+    print(" Data used between ", timeinitsec, "and ", timeendsec)
         
     f = open("temp_data_fnn.dat", "w")
-    for i in range(timeinit, timeend):
+    for i in range(timeinitsec, timeendsec):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -367,19 +380,23 @@ def false_nearest_phase_space(patient, channel, maximumdimension = 5, delay = 5,
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
     
-def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, init=4000, windowlength=10000):
-
-    end = init + windowlength
-    
+def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec = 200, windowlengthsec = 300):
+        
     data = edf_data(patient)
+    
+    end = (initsec + windowlengthsec)*data.sample_frequency
+    initsec = initsec*data.sample_frequency
+    
     print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[channel][init:end]))
+    print(" Data length (number of points) :", len(data.sigbufs[channel][initsec:end]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[channel][init:end]))
+    time = range(0, len(data.sigbufs[channel][initsec:end]))
     time = time / data.sample_frequency
-
+    
+    print(" Data used between ", initsec," and ", end)
+        
     f = open("temp_data_lyap.dat", "w")
-    for i in range(init, end):
+    for i in range(initsec, end):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -473,22 +490,17 @@ def Dynamic_Lyapunov_exponent(patient, channel, dimension = 5, delay = 5, theile
 """
 
 patient = './Epileptic_Seizure_Data/chb01_03.edf'
-patient2 = './Epileptic_Seizure_Data/chb01_04.edf'
 channel = 0
 delay = 44
 maximumdimension = 30
 theilerwindow = 200
+dimension = 8
+initsec = 200 
+windowlengthsec = 100
 
-dimension = 18
-init = 4000
-windowlength = 40000
-#ESP_data_analysis(patient, channel)
-autocor_mutual_info_phase_space(patient, 766976, 792576)
-visualization_phase_space(patient, channel, False, delay, 766976, 792576)
-false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 766976, 792576)
-#autocor_mutual_info_phase_space(patient, 766976, 792576)
-#autocor_mutual_info_phase_space(patient2, 375552, 382464)
+#autocor_mutual_info_phase_space(patient, 2996, 3036)
+#visualization_phase_space(patient, channel, False, delay, 2996, 3036)
+#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 2996, 3036)
 #space_time_separation_plot(patient, channel)
-#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow)
-#Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, init, windowlength)
+Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 #Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
