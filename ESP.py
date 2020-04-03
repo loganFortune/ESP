@@ -13,6 +13,8 @@ import numpy as np
 import PyGnuplot as gp
 import os
 from scipy.stats import linregress
+from statsmodels.tsa.stattools import adfuller
+from statistics import mean, variance
 
 # MY LIBRARY
 from edf import edf_data
@@ -105,7 +107,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
     print(" Data used between ", timeinitsec, "and ", timeendsec)
 
     f = open("temp_data_viz.dat", "w")
-    for i in range(timeinitsec, timeendsec):
+    for i in range(int(timeinitsec), int(timeendsec)):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -211,7 +213,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
 
         # Store data from the specific channel
         f = open("temp_data_viz.dat", "w")
-        for i in range(timeinitsec, timeendsec):
+        for i in range(int(timeinitsec), int(timeendsec)):
             f.write(str(data.sigbufs[channel_i][i]))
             f.write("\n")
         f.close()
@@ -329,7 +331,7 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
     print(" Data used between ", timeinitsec, "and ", timeendsec)
 
     f = open("temp_data_fnn.dat", "w")
-    for i in range(timeinitsec, timeendsec):
+    for i in range(int(timeinitsec), int(timeendsec)):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -373,7 +375,29 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
 
-
+def find_optimal_window_for_near_stationary(patient, channel):
+    
+    data = edf_data(patient)
+    print(" Data Analysis:")
+    print(" Data length (number of points) :", len(data.sigbufs[channel]))
+    print(" Data Sample Frequency (Hz) :", data.sample_frequency)
+    time = range(0, len(data.sigbufs[channel]))
+    time = time / data.sample_frequency
+    
+    xitwindow = np.arange(3072, 7680, step=100)
+    meanVarMean = []
+    for itwindow in range(3072,7680, 100):
+        meanresult = []
+        i = 0
+        while(i+itwindow < len(data.sigbufs[channel])):
+            meanresult.append(mean(data.sigbufs[channel][i:i+itwindow]))
+            i = i + itwindow
+        meanVarMean.append(variance(meanresult))
+        
+    plt.figure()
+    plt.plot(xitwindow, meanVarMean)
+    plt.show()
+    
 def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=200,
                                     windowlengthsec=300):
     data = edf_data(patient)
@@ -390,7 +414,7 @@ def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     print(" Data used between ", initsec, " and ", end)
 
     f = open("temp_data_lyap.dat", "w")
-    for i in range(initsec, end):
+    for i in range(int(initsec), int(end)):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
@@ -496,8 +520,8 @@ windowlengthsec = 100
 #  Seizure
 start_time = 2996
 end_time = 3036
-channel = 0
-delay = 34
+channel = 5
+delay = 28
 maximumdimension = 33
 dimension = 30
 # autocor_mutual_info_phase_space(patient, start_time, end_time)
@@ -508,7 +532,7 @@ dimension = 30
 # Preictal
 start_time = 0
 end_time = 2995
-channel = 0
+channel = 5
 delay = 49
 maximumdimension = 33
 # autocor_mutual_info_phase_space(patient, start_time, end_time)
@@ -518,7 +542,7 @@ maximumdimension = 33
 #  Postictal
 start_time = 3037
 end_time = -1
-channel = 0
+channel = 5
 delay = 34
 maximumdimension = 33
 dimension = 30
@@ -533,3 +557,8 @@ dimension = 30
 # space_time_separation_plot(patient, channel)
 # Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 # Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
+
+# Research - time window
+channel = 5
+
+#find_optimal_window_for_near_stationary(patient, channel)
