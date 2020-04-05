@@ -421,8 +421,7 @@ def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
 
     print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,
           "/", delay, "/", theilerwindow)
-    command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
-        theilerwindow) + ' -s500 -o lyap_output.ros'
+    command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(theilerwindow) + ' -s500 -o lyap_output.ros'
     os.system(command)
 
     f = open("lyap_output.ros", "r")
@@ -560,5 +559,4 @@ dimension = 30
 
 # Research - time window
 channel = 5
-
 #find_optimal_window_for_near_stationary(patient, channel)
