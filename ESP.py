@@ -389,7 +389,7 @@ def find_optimal_window_for_near_stationary(patient, channel):
     for itwindow in range(3072,7680, 100):
         meanresult = []
         i = 0
-        while(i+itwindow < len(data.sigbufs[channel])):
+        while i+itwindow < len(data.sigbufs[channel]):
             meanresult.append(mean(data.sigbufs[channel][i:i+itwindow]))
             i = i + itwindow
         meanVarMean.append(variance(meanresult))
@@ -455,7 +455,8 @@ def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     plt.show()
 
 
-def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000):
+def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000, timeendsec=-1):
+
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -463,11 +464,14 @@ def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
+    timeendsec = timeendsec * data.sample_frequency
+    windowlength = windowlength*data.sample_frequency
+
     itwindow = 0
 
     LyapDyn = []
 
-    while (itwindow + windowlength) < len(data.sigbufs[channel]):
+    while (itwindow + windowlength) < timeendsec:
 
         f = open("temp_data_lyap.dat", "w")
         for i in range(itwindow, itwindow + windowlength):
@@ -499,10 +503,11 @@ def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
 
         slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
         LyapDyn.append(slope)
-        itwindow = itwindow + windowlength
+        itwindow += windowlength
 
     plt.figure()
     plt.plot(LyapDyn)
+    plt.savefig('dynamic_lyap_result.png')
 
 
 """
@@ -558,5 +563,7 @@ dimension = 30
 # Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
 
 # Research - time window
-channel = 5
-#find_optimal_window_for_near_stationary(patient, channel)
+channel = 0
+end_time = 3036
+
+Dynamic_Lyapunov_exponent(patient, channel, dimension=13, delay=34, theilerwindow=102, windowlength=23, timeendsec = end_time)
