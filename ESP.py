@@ -479,13 +479,14 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
             f.write("\n")
         f.close()
 
+        output_file = 'lyap_output_channel_'+str(channel)+'.ros'
         command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
-            theilerwindow) + ' -s500 -o lyap_output.ros'
+            theilerwindow) + ' -s500 -o' + str(output_file)
         os.system(command)
 
         print("\n Analysing... ", itwindow * 100 / len(data.sigbufs[channel]), "%")
 
-        f = open("lyap_output.ros", "r")
+        f = open(output_file, "r")
         lyap = []
         lecture = f.readlines()
         N_lignes = len(lecture)
@@ -503,11 +504,11 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
 
         slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
         LyapDyn.append(slope)
-        itwindow += windowlength
+        itwindow += int(windowlength/2)
 
     plt.figure()
     plt.plot(LyapDyn)
-    plt.savefig('dynamic_lyap_result.png')
+    plt.savefig('dynamic_lyap_result_channel'+str(channel)+'.png')
 
 def index():
     
