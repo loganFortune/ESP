@@ -14,13 +14,13 @@ import PyGnuplot as gp
 import os
 from scipy.stats import linregress
 from statsmodels.tsa.stattools import adfuller
-from statistics import mean, variance, stdev
+from statistics import mean, variance
 
 # MY LIBRARY
 from edf import edf_data
 
 
-def esp_data_analysis(patient, channel):
+def ESP_data_analysis(patient, channel):
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -398,7 +398,7 @@ def find_optimal_window_for_near_stationary(patient, channel):
     plt.plot(xitwindow, meanVarMean)
     plt.show()
     
-def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=200,
+def Single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=200,
                                     windowlengthsec=300):
     data = edf_data(patient)
 
@@ -455,7 +455,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     plt.show()
 
 
-def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000, timeendsec=-1):
+def Dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000, timeendsec=-1):
 
     data = edf_data(patient)
     print(" Data Analysis:")
@@ -509,78 +509,7 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     plt.plot(LyapDyn)
     plt.savefig('dynamic_lyap_result.png')
 
-def index():
-    
-    channelstouse = [0, 5, 7]
-    lyapfromchannels = []
-    
-    for i in range(0, len(channelstouse)):
-        
-        filesname = "lyap_output_"+str(channelstouse[i])+".ros"
-        
-        f = open(filesname, "r")
-        lyap = []
-        lecture = f.readlines()
-        N_lignes = len(lecture)
-    
-        for j in range(1, int(N_lignes)):
-            for i in range(0, len(lecture[j])):
-                if lecture[j][i] == " ":
-                    c = lecture[j][i + 1:]
-                    lyap.append(float(c))
-                    break
-        f.close()
-        lyapfromchannels.append(lyap)
-    
-    N = 30
-       
-    Tindexfinal = []
-    for t in range (0, len(lyapfromchannels[0]), N):
-        Tij = []
-        for i in range(0, len(lyapfromchannels)):
-            for j in range(i+1, len(lyapfromchannels)):
-                diffwindow = []
-                for k in range(t, t+N):
-                    diffwindow.append(lyapfromchannels[i][t]-lyapfromchannels[j][t])
-                Tij.append(mean(diffwindow)*np.sqrt(N)/stdev(diffwindow))
-        Tindexfinal.append(mean(Tij))
-    
-    plt.figure()
-    plt.plot(Tindexfinal)
-    plt.show()
-        
-def IndexTheo(patient, channel, dimension, delay, theilerwindow, start_time, end_time , windowlengthsec):
-    
-    data = edf_data(patient)
-    print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[0]))
-    print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[0]))
-    time = time / data.sample_frequency
 
-    print(" Data used between ", start_time, "and ", end_time)
-    print(" Mutual Information & Autocor Algorithms for patient ", patient, " ...")
-
-    N = (end_time - start_time)/ data.sample_frequency
-
-    STL = single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, start_time, windowlengthsec)
-
-    E = 0.0
-    for i in range(int(start_time), int(end_time)):
-        E = E + float(data.sigbufs[channel][i])
-        E = E/N
-    
-    ecart_type = 0
-    for i in range(int(start_time), int(end_time)):
-        ecart_type = ecart_type + (float(data.sigbufs[channel][i]) - E)**2
-        ecart_type = ecart_type/N
-        ecart_type = np.sqrt(ecart_type)
-
-    index = 0
-    index = (E*STL) / (ecart_type/np.sqrt(N))
-
-    return index
-    
 """
     
     EXPERIMENTATIONS / TESTS
@@ -602,7 +531,7 @@ dimension = 30
 # autocor_mutual_info_phase_space(patient, start_time, end_time)
 # visualization_phase_space(patient, channel, False, delay, start_time, end_time)
 # false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
-# single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+# Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 
 # Preictal
 start_time = 0
@@ -624,17 +553,17 @@ dimension = 30
 #autocor_mutual_info_phase_space(patient, start_time, end_time)
 #visualization_phase_space(patient, channel, False, delay, start_time, end_time)
 #false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
-#single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+#Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 
 # autocor_mutual_info_phase_space(patient, 2996, 3036)
 # visualization_phase_space(patient, channel, False, delay, 2996, 3036)
 # false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 2996, 3036)
 # space_time_separation_plot(patient, channel)
-# single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
-# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
+# Single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
+# Dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
 
 # Research - time window
 channel = 0
 end_time = 3036
 
-dynamic_Lyapunov_exponent(patient, channel, dimension=13, delay=34, theilerwindow=102, windowlength=23, timeendsec = end_time)
+Dynamic_Lyapunov_exponent(patient, channel, dimension=13, delay=34, theilerwindow=102, windowlength=23, timeendsec = end_time)
