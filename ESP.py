@@ -21,6 +21,7 @@ from edf import edf_data
 
 
 def esp_data_analysis(patient, channel):
+    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -29,9 +30,10 @@ def esp_data_analysis(patient, channel):
     time = time / data.sample_frequency
 
     # Data Visualization
-    plt.title('EEG Recording : A Seizure begins at 2996 seconds.')
+    x = np.linspace(0, 3600, len(data.sigbufs[channel]), False, False, np.dtype('int16'))
+    print(" Max value :", max(data.sigbufs[channel]))
     plt.xlabel('seconds')
-    plt.plot(data.sigbufs[channel])
+    plt.plot(x, data.sigbufs[channel])
     plt.show()
 
     """
@@ -88,6 +90,7 @@ def esp_data_analysis(patient, channel):
 
 
 def visualization_phase_space(patient, channel, useowndelay=False, delay=5, timeinitsec=0, timeendsec=-1):
+    
     # Write Data in a file : temp_data_viz.dat
 
     data = edf_data(patient)
@@ -186,6 +189,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
 
 
 def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
+    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
@@ -398,8 +402,8 @@ def find_optimal_window_for_near_stationary(patient, channel):
     plt.plot(xitwindow, meanVarMean)
     plt.show()
     
-def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=200,
-                                    windowlengthsec=300):
+def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=10,
+                                    windowlengthsec=23):
     data = edf_data(patient)
 
     end = (initsec + windowlengthsec) * data.sample_frequency
@@ -419,8 +423,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
         f.write("\n")
     f.close()
 
-    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,
-          "/", delay, "/", theilerwindow)
+    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,"/", delay, "/", theilerwindow)
     command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(theilerwindow) + ' -s500 -o lyap_output.ros'
     os.system(command)
 
@@ -438,8 +441,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     f.close()
 
     if len(lyap) == 0:
-        print(
-            " There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
+        print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
         return
 
     lenLyap = 300
@@ -455,7 +457,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     plt.show()
 
 
-def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=10000, timeendsec=-1):
+def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=25, timeendsec=-1):
 
     data = edf_data(patient)
     print(" Data Analysis:")
@@ -479,9 +481,8 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
             f.write("\n")
         f.close()
 
-        output_file = 'lyap_output_channel_'+str(channel)+'.ros'
-        command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
-            theilerwindow) + ' -s500 -o' + str(output_file)
+        output_file = 'lyap_output_channel.ros'
+        command = 'lyap_r temp_data_lyap.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(theilerwindow) + ' -s500 -o' + str(output_file)
         os.system(command)
 
         print("\n Analysing... ", itwindow * 100 / len(data.sigbufs[channel]), "%")
@@ -506,6 +507,13 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
         LyapDyn.append(slope)
         itwindow += int(windowlength/2)
 
+    output_file = 'lyap_output_channel_'+ str(channel)+'.ros'
+    f = open(output_file, "w")
+    for i in range(0, len(LyapDyn)):
+        f.write(str(LyapDyn[i]))
+        f.write("\n")
+    f.close()
+    
     plt.figure()
     plt.plot(LyapDyn)
     plt.savefig('dynamic_lyap_result_channel'+str(channel)+'.png')
@@ -517,7 +525,7 @@ def index():
     
     for i in range(0, len(channelstouse)):
         
-        filesname = "lyap_output_"+str(channelstouse[i])+".ros"
+        filesname = "lyap_output_channel_"+str(channelstouse[i])+".ros"
         
         f = open(filesname, "r")
         lyap = []
@@ -526,66 +534,46 @@ def index():
     
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
-                if lecture[j][i] == " ":
-                    c = lecture[j][i + 1:]
+                    c = lecture[j]
                     lyap.append(float(c))
                     break
         f.close()
         lyapfromchannels.append(lyap)
     
+    
     N = 30
        
     Tindexfinal = []
-    for t in range (0, len(lyapfromchannels[0]), N):
+    
+    for t in range (0, len(lyapfromchannels[0])-N):
         Tij = []
         for i in range(0, len(lyapfromchannels)):
             for j in range(i+1, len(lyapfromchannels)):
                 diffwindow = []
                 for k in range(t, t+N):
-                    diffwindow.append(lyapfromchannels[i][t]-lyapfromchannels[j][t])
+                    diffwindow.append(abs(lyapfromchannels[i][k]-lyapfromchannels[j][k]))
                 Tij.append(mean(diffwindow)*np.sqrt(N)/stdev(diffwindow))
         Tindexfinal.append(mean(Tij))
     
-    plt.figure()
+    """
+    plt.figure(dpi=120)
+    x = np.linspace(0, 3200, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
+    plt.plot(x, lyapfromchannels[1])
+    plt.plot(x, lyapfromchannels[0])
+    plt.plot(x, lyapfromchannels[2])
+    plt.show()
+    """
+    plt.figure(dpi=80)
     plt.plot(Tindexfinal)
     plt.show()
         
-def IndexTheo(patient, channel, dimension, delay, theilerwindow, start_time, end_time , windowlengthsec):
-    
-    data = edf_data(patient)
-    print(" Data Analysis:")
-    print(" Data length (number of points) :", len(data.sigbufs[0]))
-    print(" Data Sample Frequency (Hz) :", data.sample_frequency)
-    time = range(0, len(data.sigbufs[0]))
-    time = time / data.sample_frequency
-
-    print(" Data used between ", start_time, "and ", end_time)
-    print(" Mutual Information & Autocor Algorithms for patient ", patient, " ...")
-
-    N = (end_time - start_time)/ data.sample_frequency
-
-    STL = single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, start_time, windowlengthsec)
-
-    E = 0.0
-    for i in range(int(start_time), int(end_time)):
-        E = E + float(data.sigbufs[channel][i])
-        E = E/N
-    
-    ecart_type = 0
-    for i in range(int(start_time), int(end_time)):
-        ecart_type = ecart_type + (float(data.sigbufs[channel][i]) - E)**2
-        ecart_type = ecart_type/N
-        ecart_type = np.sqrt(ecart_type)
-
-    index = 0
-    index = (E*STL) / (ecart_type/np.sqrt(N))
-
-    return index
-    
 """
     
     EXPERIMENTATIONS / TESTS
     
+channel 0 : dimension->13 time lag -> 34
+channel 5 : dimension->12 time lag -> 27
+channel 7 : dimensiob->12 time lag -> 35
 """
 
 patient = './Epileptic_Seizure_Data/chb01_03.edf'
@@ -596,7 +584,7 @@ windowlengthsec = 100
 #  Seizure
 start_time = 2996
 end_time = 3036
-channel = 5
+channel = 7
 delay = 28
 maximumdimension = 33
 dimension = 30
@@ -635,7 +623,11 @@ dimension = 30
 # dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
 
 # Research - time window
-channel = 0
-end_time = 3036
+channel = 0 # 5 7
+dimension = 13
+delay = 34
+end_time = 3200
 
-dynamic_Lyapunov_exponent(patient, channel, dimension=13, delay=34, theilerwindow=102, windowlength=23, timeendsec = end_time)
+#esp_data_analysis(patient, channel)
+#dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=24, timeendsec = end_time)
+index()
