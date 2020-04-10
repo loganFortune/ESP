@@ -367,10 +367,17 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
             if i == len(lecture[j]) - 1:
                 first = False
 
-    print(x)
-    print(y)
+    dimensionfinal = 0
+    for i in range(0, len(y)):
+        if (y[i] < 10):
+            dimensionfinal = i
+            break;
+    
+    print(" FNN under 10%: ", dimensionfinal)
+    # print(x)
+    # print(y)
     f.close()
-    plt.figure()
+    plt.figure(dpi=100)
     titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient/Experience:' + patient
     plt.title(titlespec)
     plt.xlabel('Dimension')
@@ -444,16 +451,24 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
         print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
         return
 
-    lenLyap = 300
-    y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
+    lenLyap1 = 200
+    lenLyap2 = 100
+    y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))
+    y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))
+    
+    slope1, intercept1, r_value1, p_value1, std_err1 = linregress(y1, lyap[0:lenLyap1])
+    slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
+    
+    intersect12point = int((intercept2-intercept1)/slope1)
+    yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
+    slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
+    
+    x = np.arange(0, len(lyap), step=1)
 
-    slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
-    x = np.arange(0, 500, step=1)
-
-    print(" Lyapunov Exponent : ", slope)
+    print(" Lyapunov Exponent : ", slope1)
     plt.figure()
     plt.plot(lyap)
-    plt.plot(x, intercept + slope * x, 'r', label='fitted line')
+    plt.plot(x, interceptf + slopef * x, 'r', label='fitted line')
     plt.show()
 
 
@@ -500,21 +515,28 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
                     break
         f.close()
 
-        lenLyap = 300
-        y = np.linspace(0, len(lyap[0:lenLyap]), len(lyap[0:lenLyap]), False, False, np.dtype('int16'))
-
-        slope, intercept, r_value, p_value, std_err = linregress(y, lyap[0:lenLyap])
-        LyapDyn.append(slope)
+        lenLyap1 = 200
+        lenLyap2 = 100
+        y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))
+        y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))
+    
+        slope1, intercept1, r_value1, p_value1, std_err1 = linregress(y1, lyap[0:lenLyap1])
+        slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
+    
+        intersect12point = int((intercept2-intercept1)/slope1)
+        yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
+        slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
+    
+        LyapDyn.append(slopef)
         itwindow += int(windowlength/2)
 
-    DIR = os.path.abspath(os.path.dirname(__file__))
-    output_file = os.path.join(DIR, 'lyap_data\lyap_output_channel_' + str(channel) + '.ros')
-
+    output_file = 'lyap_output_channel_'+ str(channel)+'.ros'
     f = open(output_file, "w")
     for i in range(0, len(LyapDyn)):
         f.write(str(LyapDyn[i]))
         f.write("\n")
     f.close()
+       
     
     plt.figure()
     plt.plot(LyapDyn)
@@ -526,10 +548,9 @@ def index():
     lyapfromchannels = []
     
     for i in range(0, len(channelstouse)):
-
-        DIR = os.path.abspath(os.path.dirname(__file__))
-        filesname = os.path.join(DIR, 'lyap_data\lyap_output_channel_' + str(channel) + '.ros')
-
+        
+        filesname = "lyap_output_channel_"+str(channelstouse[i])+".ros"
+        
         f = open(filesname, "r")
         lyap = []
         lecture = f.readlines()
@@ -548,14 +569,14 @@ def index():
        
     Tindexfinal = []
     
-    for t in range (0, len(lyapfromchannels[0])-N-1):
+    for t in range (0, len(lyapfromchannels[0])-N):
         Tij = []
-        for i in range(0, len(lyapfromchannels)):  # electrode i
-            for j in range(i+1, len(lyapfromchannels)):  # electrode j
+        for i in range(0, len(lyapfromchannels)):
+            for j in range(i+1, len(lyapfromchannels)):
                 diffwindow = []
-                for k in range(t, t+N+1):
+                for k in range(t, t+N):
                     diffwindow.append(abs(lyapfromchannels[i][k]-lyapfromchannels[j][k]))
-                Tij.append(mean(diffwindow)*np.sqrt(N)/np.std(diffwindow))  # check axis=0 or 1
+                Tij.append(mean(diffwindow)*np.sqrt(N)/stdev(diffwindow))
         Tindexfinal.append(mean(Tij))
     
     """
@@ -571,13 +592,20 @@ def index():
     plt.show()
         
 """
-    
     EXPERIMENTATIONS / TESTS
-    
-channel 0 : dimension->13 time lag -> 34
-channel 5 : dimension->12 time lag -> 27
-channel 7 : dimension->12 time lag -> 35
 
+The following is written as below :
+    
+"channel x : dimension -> a (FNN under 10%) time lag -> b (mutual;autocor) = mean(mutual;autocor)"
+
+channel 0 : dimension->13 (10) time lag -> 34 (5;34) = 34 L.F
+channel 5 : dimension->12 (11) time lag -> 27 (26;28) = 27 L.F
+channel 7 : dimension->12 (11) time lag -> 33 (31;35) = 33 L.F
+channel 10 : dimension->13 (11) time lag -> 29 (26;32) = 29 S.M
+channel 11 : dimension->15 (12) time lag -> 36 (34;38) = 36 S.M
+channel 15 : dimension->13 (11) time lag -> 30 (28;32) = 30 T.D
+channel 16 : dimension->13 (10) time lag -> 24 (22;27) = 24 T.D
+channel 20 : dimension->13 (11) time lag -> 23 (20;27) = 23 T.D
 """
 
 patient = './Epileptic_Seizure_Data/chb01_03.edf'
@@ -588,10 +616,10 @@ windowlengthsec = 100
 #  Seizure
 start_time = 2996
 end_time = 3036
-channel = 7
-delay = 28
+channel = 20
+delay = 23
 maximumdimension = 33
-dimension = 30
+dimension = 13
 # autocor_mutual_info_phase_space(patient, start_time, end_time)
 # visualization_phase_space(patient, channel, False, delay, start_time, end_time)
 # false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
@@ -634,5 +662,4 @@ end_time = 3200
 
 #esp_data_analysis(patient, channel)
 dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=24, timeendsec = end_time)
-index()
-
+#index()
