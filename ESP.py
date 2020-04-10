@@ -529,8 +529,10 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     
         LyapDyn.append(slopef)
         itwindow += int(windowlength/2)
-
-    output_file = 'lyap_output_channel_'+ str(channel)+'.ros'
+        
+    DIR = os.path.abspath(os.path.dirname(__file__))
+    output_file = os.path.join(DIR, 'lyap_data\lyap_output_channel_' + str(channel) + '.ros')
+    
     f = open(output_file, "w")
     for i in range(0, len(LyapDyn)):
         f.write(str(LyapDyn[i]))
@@ -548,9 +550,10 @@ def index():
     lyapfromchannels = []
     
     for i in range(0, len(channelstouse)):
-        
-        filesname = "lyap_output_channel_"+str(channelstouse[i])+".ros"
-        
+
+        DIR = os.path.abspath(os.path.dirname(__file__))
+        filesname = os.path.join(DIR, 'lyap_data\lyap_output_channel_' + str(channel) + '.ros')
+
         f = open(filesname, "r")
         lyap = []
         lecture = f.readlines()
@@ -569,14 +572,14 @@ def index():
        
     Tindexfinal = []
     
-    for t in range (0, len(lyapfromchannels[0])-N):
+    for t in range (0, len(lyapfromchannels[0])-N-1):
         Tij = []
-        for i in range(0, len(lyapfromchannels)):
-            for j in range(i+1, len(lyapfromchannels)):
+        for i in range(0, len(lyapfromchannels)):  # electrode i
+            for j in range(i+1, len(lyapfromchannels)):  # electrode j
                 diffwindow = []
-                for k in range(t, t+N):
+                for k in range(t, t+N+1):
                     diffwindow.append(abs(lyapfromchannels[i][k]-lyapfromchannels[j][k]))
-                Tij.append(mean(diffwindow)*np.sqrt(N)/stdev(diffwindow))
+                Tij.append(mean(diffwindow)*np.sqrt(N)/np.std(diffwindow))  # check axis=0 or 1
         Tindexfinal.append(mean(Tij))
     
     """
@@ -590,7 +593,7 @@ def index():
     plt.figure(dpi=80)
     plt.plot(Tindexfinal)
     plt.show()
-        
+    
 """
     EXPERIMENTATIONS / TESTS
 
