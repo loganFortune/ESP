@@ -29,14 +29,14 @@ def esp_data_analysis(patient, channel):
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
     
-    """
+    
     # Data Visualization
     x = np.linspace(0, 3600, len(data.sigbufs[channel]), False, False, np.dtype('int16'))
     print(" Max value :", max(data.sigbufs[channel]))
     plt.xlabel('seconds')
     plt.plot(x, data.sigbufs[channel])
     plt.show()
-    """
+    
 
     """
     # Data Comparison. The channel provided is not used !
@@ -80,7 +80,7 @@ def esp_data_analysis(patient, channel):
     plt.show()
     """
 
-    
+    """
     # Spectrogram
     powerSpectrum, frequenciesFound, time, imageAxis = plt.specgram(data.sigbufs[channel], 2046, data.sample_frequency)
    
@@ -88,7 +88,7 @@ def esp_data_analysis(patient, channel):
     plt.xlabel('Time')
     plt.ylabel('Frequency')
     plt.show()   
-    
+    """
 
 
 def visualization_phase_space(patient, channel, useowndelay=False, delay=5, timeinitsec=0, timeendsec=-1):
@@ -111,7 +111,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
 
     print(" Data used between ", timeinitsec, "and ", timeendsec)
 
-    f = open("temp_data_viz.dat", "w")
+    f = open("temp_data.dat", "w")
     for i in range(int(timeinitsec), int(timeendsec)):
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
@@ -119,7 +119,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
 
     # Launch Autocorrelation Measurement 
 
-    os.system('autocor temp_data_viz.dat -p -o temp_data_viz.dat_co')
+    os.system('autocor temp_data.dat -p -o temp_data_viz.dat_co')
 
     # Autocor Results Analysis
 
@@ -135,13 +135,13 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
     N_lignes = len(lecture)
     blankspacefound = False
 
-    for j in range(0, 100):
+    for j in range(0, N_lignes):
         for i in range(0, len(lecture[j])):
             if (lecture[j][i] != " ") and not blankspacefound:
                 i_corr = i
                 blankspacefound = True
                 continue
-            if (lecture[j][i] == " ") and blankspacefound:
+            if (lecture[j][i] == " ") and blankspacefound and not timelaginfzerofirst:
                 c = lecture[j][i_corr:i]
                 c2 = lecture[j][i + 1:]
                 x_corr.append(float(c))
@@ -155,12 +155,16 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
 
     print(" Autocor --> Time Lag :", timelag_autocorr)
 
+    if timelag_autocorr == 0 or timelag_autocorr < 0:
+        print(" The representation is not possible because of the timelag_autocoor value.")
+        return
+    
     # Phase Space 2D-Time Lag representation 
 
     if useowndelay:
-        command1 = 'delay -d' + str(delay) + ' -m2 -o delay_output.dat temp_data_viz.dat'
+        command1 = 'delay -d' + str(delay) + ' -m2 -o delay_output.dat temp_data.dat'
     else:
-        command1 = 'delay -d' + str(timelag_autocorr) + ' -m2 -o delay_output.dat temp_data_viz.dat'
+        command1 = 'delay -d' + str(timelag_autocorr) + ' -m2 -o delay_output.dat temp_data.dat'
 
     os.system(command1)
 
@@ -245,7 +249,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
 
         minimumexistence = False
 
-        for i in range(1, len(mut) - 1):
+        for i in range(1, len(mut)-1):
             if (mut[i - 1] > mut[i]) and (mut[i] < mut[i + 1]) and (minimumexistence == False):
                 firstminimumfromallchannels.append(i)
                 minimumexistence = True
@@ -267,7 +271,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
         N_lignes = len(lecture)
         blankspacefound = False
 
-        for j in range(0, 100):
+        for j in range(0, N_lignes):
             for i in range(0, len(lecture[j])):
                 if (lecture[j][i] != " ") and (blankspacefound == False):
                     i_corr = i
@@ -284,6 +288,9 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
                     blankspacefound = False
                     break
         f.close()
+        
+        if timelaginfzerofirst == False:
+            timelag_autocorr.append(-1)
 
     print("\n Mutual First Minimums for all channels : ")
     print(firstminimumfromallchannels)
@@ -551,7 +558,7 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     LyapDyn = []
 
     while (itwindow + windowlength) < timeendsec:
-
+        
         f = open("temp_data.dat", "w")
         for i in range(itwindow, itwindow + windowlength):
             f.write(str(data.sigbufs[channel][i]))
@@ -601,14 +608,13 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
         f.write("\n")
     f.close()
        
-    
     plt.figure()
     plt.plot(LyapDyn)
     plt.savefig('dynamic_lyap_result_channel'+str(channel)+'.png')
 
 def index():
     
-    channelstouse = [0, 5, 7, 10, 11]
+    channelstouse = [0, 5, 7, 10, 11, 15, 16, 20]
     lyapfromchannels = []
     
     for i in range(0, len(channelstouse)):
@@ -646,15 +652,25 @@ def index():
     
     """
     plt.figure(dpi=120)
-    x = np.linspace(0, 3200, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
+    x = np.linspace(0, 3600, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
     plt.plot(x, lyapfromchannels[1])
-    plt.plot(x, lyapfromchannels[0])
+    #plt.plot(x, lyapfromchannels[0])
     plt.plot(x, lyapfromchannels[2])
+    #plt.plot(x, lyapfromchannels[3])
+    plt.plot(x, lyapfromchannels[4])
+    plt.plot(x, lyapfromchannels[5])
+    #plt.plot(x, lyapfromchannels[6])
+    #plt.plot(x, lyapfromchannels[7])
     plt.show()
     """
+    
+    
+    x = np.linspace(0, 3600, len(lyapfromchannels[0])-N-1, False, False, np.dtype('int16'))
+    print(len(Tindexfinal))
     plt.figure(dpi=80)
-    plt.plot(Tindexfinal)
+    plt.plot(x, Tindexfinal)
     plt.show()
+    
     
 """
     EXPERIMENTATIONS / TESTS
@@ -667,9 +683,12 @@ The following is written as below :
         chb01_01, chb01_02, chb01_03 (seizure occured), chb01_04 (seizure occured)
     
     Results for chb01_03 :
-        
+
+    Seizure Start Time: 2996 seconds
+    Seizure End Time: 3036 seconds
+    
     channel 0 : dimension->13 (10) time lag -> 34 (5;34) = 34 L.F
-    channel 5 : dimension->12 (11) time lag -> 27 (26;28) = 27 L.F
+    channel 5 : dimension->13 (11) time lag -> 27 (26;28) = 27 L.F
     channel 7 : dimension->12 (11) time lag -> 33 (31;35) = 33 L.F
     channel 10 : dimension->13 (11) time lag -> 29 (26;32) = 29 S.M
     channel 11 : dimension->15 (12) time lag -> 36 (34;38) = 36 S.M
@@ -677,18 +696,39 @@ The following is written as below :
     channel 16 : dimension->13 (10) time lag -> 24 (22;27) = 24 T.D
     channel 20 : dimension->13 (11) time lag -> 23 (20;27) = 23 T.D
     
+    Results for chb01_04 :
+
+    Seizure Start Time: 1467 seconds
+    Seizure End Time: 1494 seconds
+    
+    channel 0 : dimension->15 (10) time lag -> 26 (23;31) = 26 L.F
+    channel 4 : dimension->15 (9) time lag -> 29 (29;29) = 29 L.F
+    (X) channel 5 : dimension->13 (11) time lag -> 23 (18;29) = 23 L.F (not very good)
+    channel 8 : dimension->15 (9) time lag -> 26 (23;30) = 26 L.F
+    channel 10 : dimension->13 (11) time lag -> 29 (26;32) = 29 S.M
+    channel 11 : dimension->13 (10) time lag -> 36 (34;38) = 36 S.M
+    channel 15 : dimension->13 (9) time lag -> 31 (30;32) = 31 T.D
+    channel 16 : dimension->13 (8) time lag -> 26 (21;32) = 26 T.D (not very good)
+    channel 19 : dimension->13 (10) time lag -> 28 (26;30) = 28 T.D
+    
+    (X) channel 20 : dimension->X (X) time lag -> X (X;X) = X (not good at all)
+    
+     Results for chb01_01 :
+         
+        !! TODO !!
 """
 
-patient = './Epileptic_Seizure_Data/chb01_03.edf'
+patient = './Epileptic_Seizure_Data/chb01_04.edf'
 theilerwindow = 200
 initsec = 200
 windowlengthsec = 23
 
 #  Seizure
-start_time = 2996
-end_time = 3036
-channel = 5
-delay = 27
+start_time = 1467
+end_time = 1494
+
+channel = 19
+delay = 28
 maximumdimension = 50
 dimension = 13
 
@@ -698,42 +738,15 @@ dimension = 13
 # correlation_dimension(patient, channel, delay, maximumdimension, theilerwindow, timeinitsec = start_time, timeendsec = end_time)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 
-# Preictal
-start_time = 0
-end_time = 2995
-channel = 5
-delay = 49
-maximumdimension = 33
-# autocor_mutual_info_phase_space(patient, start_time, end_time)
-# visualization_phase_space(patient, channel, False, delay, start_time, end_time)
-# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
-
-#  Postictal
-start_time = 3037
-end_time = -1
-channel = 5
-delay = 34
-maximumdimension = 33
-dimension = 30
-# autocor_mutual_info_phase_space(patient, start_time, end_time)
-# visualization_phase_space(patient, channel, False, delay, start_time, end_time)
-# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
-# single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
-
-# autocor_mutual_info_phase_space(patient, 2996, 3036)
-# visualization_phase_space(patient, channel, False, delay, 2996, 3036)
-# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, 2996, 3036)
-# space_time_separation_plot(patient, channel)
-# single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
-# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, windowlength)
 
 # Research - time window
-channel = 5 # 5 7
-dimension = 13
-delay = 27
+channel = 15 # 5 7
+dimension = 12
+delay = 33
 end_time = -1
+timeendsec = 2000
 
-# esp_data_analysis(patient, channel)
-single_Window_Lyapunov_exponent(patient, channel, dimension, delay, 3*delay, 2996, 23)
-# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=200, windowlength=240, timeendsec = end_time)
-# index()
+esp_data_analysis(patient, channel)
+# single_Window_Lyapunov_exponent(patient, channel, dimension, delay, 200, 2996, 23)
+# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec = -1)
+#index()
