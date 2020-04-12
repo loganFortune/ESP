@@ -600,7 +600,7 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
         itwindow += int(windowlength/2)
         
     DIR = os.path.abspath(os.path.dirname(__file__))
-    output_file = os.path.join(DIR, 'lyap_data/lyap_output_channel_' + str(channel) + '.ros')
+    output_file = os.path.join(DIR, 'lyap_data_04/lyap_output_channel_' + str(channel) + '.ros')
     
     f = open(output_file, "w")
     for i in range(0, len(LyapDyn)):
@@ -620,7 +620,7 @@ def index():
     for i in range(0, len(channelstouse)):
 
         DIR = os.path.abspath(os.path.dirname(__file__))
-        filesname = os.path.join(DIR, 'lyap_data/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
+        filesname = os.path.join(DIR, 'lyap_data_04/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
 
         f = open(filesname, "r")
         lyap = []
@@ -740,13 +740,12 @@ dimension = 13
 
 
 # Research - time window
-channel = 15 # 5 7
-dimension = 12
-delay = 33
-end_time = -1
+channel = 10 # 5 7
+dimension = 13
+delay = 29
 timeendsec = 2000
 
-esp_data_analysis(patient, channel)
+# esp_data_analysis(patient, channel)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, 200, 2996, 23)
-# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec = -1)
+dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec = timeendsec)
 #index()
