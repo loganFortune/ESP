@@ -523,6 +523,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
     
     intersect12point = int((intercept2-intercept1)/slope1)
+    
     yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
     slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
     
@@ -593,8 +594,13 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
         slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
     
         intersect12point = int((intercept2-intercept1)/slope1)
-        yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
-        slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
+        
+        if(intersect12point > 500):
+            print(" One Lyapunov exponent is not consistent. Thus, we will use the continuity of the Lyapunov exponent through time.")    
+            slopef= LyapDyn[-1]
+        else:
+            yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
+            slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
     
         LyapDyn.append(slopef)
         itwindow += int(windowlength/2)
