@@ -617,6 +617,41 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     plt.plot(LyapDyn)
     plt.savefig('dynamic_lyap_result_channel'+str(channel)+'.png')
 
+def show_lyapunovexponent(patient, channelstouse):
+    
+    lyapfromchannels = []
+    
+    for i in range(0, len(channelstouse)):
+
+        DIR = os.path.abspath(os.path.dirname(__file__))
+        filesname = os.path.join(DIR, 'lyap_data_04/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
+
+        f = open(filesname, "r")
+        lyap = []
+        lecture = f.readlines()
+        N_lignes = len(lecture)
+    
+        for j in range(1, int(N_lignes)):
+            for i in range(0, len(lecture[j])):
+                    c = lecture[j]
+                    lyap.append(float(c))
+                    break
+        f.close()
+        lyapfromchannels.append(lyap)
+    
+    lyapfromchannelsMean = []
+    for t in range (0, len(lyapfromchannels[0])):
+        allvalue = []
+        for i in range(0, len(lyapfromchannels)):
+            allvalue.append(lyapfromchannels[i][t])
+        lyapfromchannelsMean.append(mean(allvalue))
+    
+    x = np.linspace(0, 3600, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
+    
+    plt.figure()
+    plt.plot(x,lyapfromchannelsMean)
+    plt.show()
+    
 def index(channelstouse, timeendsec):
         
     if timeendsec == -1:
@@ -627,7 +662,7 @@ def index(channelstouse, timeendsec):
     for i in range(0, len(channelstouse)):
 
         DIR = os.path.abspath(os.path.dirname(__file__))
-        filesname = os.path.join(DIR, 'lyap_data/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
+        filesname = os.path.join(DIR, 'lyap_data_01/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
 
         f = open(filesname, "r")
         lyap = []
@@ -707,6 +742,8 @@ The following is written as below :
 
     Seizure Start Time: 1467 seconds
     Seizure End Time: 1494 seconds
+
+    ! Lyapunov Exponent computation until 2500 sec !    
     
     channel 0 : dimension->15 (10) time lag -> 26 (23;31) = 26 L.F
     channel 4 : dimension->15 (9) time lag -> 29 (29;29) = 29 L.F
@@ -725,15 +762,15 @@ The following is written as below :
     channel 0 : dimension->13 time lag -> 30 L.F
     channel 5 : dimension->13 time lag -> 30 L.F
     channel 7 : dimension->13 time lag -> 30 L.F
-    channel 10 : dimension->13 time lag -> 30 S.M
-    channel 11 : dimension->15 time lag -> 30 S.M
+    channel 10 : dimension->13 time lag -> 30 L.F
+    channel 11 : dimension->15 time lag -> 30 L.F
     channel 15 : dimension->13 time lag -> 30 T.D
     channel 16 : dimension->13 time lag -> 30 T.D
     channel 20 : dimension->13 time lag -> 30 T.D
     
 """
 
-patient = './Epileptic_Seizure_Data/chb01_04.edf'
+patient = './Epileptic_Seizure_Data/chb01_01.edf'
 theilerwindow = 200
 initsec = 200
 windowlengthsec = 23
@@ -756,15 +793,17 @@ dimension = 15
 # find_optimal_window_for_near_stationary(patient,channel)
 
 # Research - time window
-channel = 10 # 5 7
+channel = 11 # 5 7
 dimension = 13
-delay = 29
-timeendsec = 2500
+delay = 30
+timeendsec = -1
 
 # channelstouse = [0, 5, 7, 10, 11, 15, 16, 20]
-# channelstouse = [0, 4, 8, 15, 16, 19] #, 10, 11, 15, 16, 19]
-
+# channelstouse = [0, 5, 7, 10, 11, 15, 16, 20] #, 10, 11, 15, 16, 19]
+channelstouse = [0,4,8,11,15,16,19]
+show_lyapunovexponent(patient, channelstouse)
 # esp_data_analysis(patient, channel)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, 200, 2996, 23)
-dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec=timeendsec)
-# index(channelstouse, timeendsec)
+# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec=timeendsec)
+
+index(channelstouse, timeendsec)
