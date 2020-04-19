@@ -21,22 +21,19 @@ from edf import edf_data
 
 
 def esp_data_analysis(patient, channel):
-    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
-    
-    
+
     # Data Visualization
     x = np.linspace(0, 3600, len(data.sigbufs[channel]), False, False, np.dtype('int16'))
     print(" Max value :", max(data.sigbufs[channel]))
     plt.xlabel('seconds')
     plt.plot(x, data.sigbufs[channel])
     plt.show()
-    
 
     """
     # Data Comparison. The channel provided is not used !
@@ -92,7 +89,6 @@ def esp_data_analysis(patient, channel):
 
 
 def visualization_phase_space(patient, channel, useowndelay=False, delay=5, timeinitsec=0, timeendsec=-1):
-    
     # Write Data in a file : temp_data_viz.dat
 
     data = edf_data(patient)
@@ -158,7 +154,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
     if timelag_autocorr == 0 or timelag_autocorr < 0:
         print(" The representation is not possible because of the timelag_autocoor value.")
         return
-    
+
     # Phase Space 2D-Time Lag representation 
 
     if useowndelay:
@@ -195,7 +191,6 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
 
 
 def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
-    
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[0]))
@@ -249,7 +244,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
 
         minimumexistence = False
 
-        for i in range(1, len(mut)-1):
+        for i in range(1, len(mut) - 1):
             if (mut[i - 1] > mut[i]) and (mut[i] < mut[i + 1]) and (minimumexistence == False):
                 firstminimumfromallchannels.append(i)
                 minimumexistence = True
@@ -288,8 +283,8 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
                     blankspacefound = False
                     break
         f.close()
-        
-        if timelaginfzerofirst == False:
+
+        if not timelaginfzerofirst:
             timelag_autocorr.append(-1)
 
     print("\n Mutual First Minimums for all channels : ")
@@ -302,6 +297,7 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
     plt.show()
 
     print(" For more precisions, use the \'visualization_phase_space\' function.")
+
 
 # Space-time separation plot is useful to get the right value for the Theiler window even if three times the time lag could be a valid value.
 def space_time_separation_plot(patient, channel):
@@ -323,6 +319,7 @@ def space_time_separation_plot(patient, channel):
     gp.c('plot "< stp temp_data.dat -x1000 -%0.01 -d39 -m20 -t500"')
 
     print("\n You can see the result with the image stp_graph.png placed at the source of the project.")
+
 
 # Get the right dimension value !
 def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, theilerwindow=100, timeinitsec=0,
@@ -350,7 +347,7 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
     f.close()
 
     # Be careful : time lag and embedding dimension must be inserted in the command below ! 
-    
+
     command = 'false_nearest temp_data.dat -x1000 -m3 -M1,' + str(maximumdimension) + ' -d' + str(
         delay) + ' -t' + str(theilerwindow) + ' -o output_data_FNN.fnn'
     os.system(command)
@@ -385,7 +382,7 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
         elif (y[i] < 1):
             dimensionfinal5 = i
             break
-    
+
     print(" FNN under 10%: ", dimensionfinal10)
     print(" FNN under 1%: ", dimensionfinal5)
 
@@ -400,18 +397,18 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
     plt.plot(x, y)
     plt.savefig('false_nearest_chb01_03.png')
 
+
 # Get the right dimension value with correlation dimension !
-def correlation_dimension(patient, channel, delay, maximumdimension, theilerwindow, timeinitsec = 0, timeendsec = 10):
-    
+def correlation_dimension(patient, channel, delay, maximumdimension, theilerwindow, timeinitsec=0, timeendsec=10):
     data = edf_data(patient)
-    
+
     if timeinitsec != 0:
         timeinitsec = timeinitsec * data.sample_frequency
     if timeendsec == -1:
         timeendsec = len(data.sigbufs[channel]) - 1
     elif timeendsec != -1:
         timeendsec = timeendsec * data.sample_frequency
-        
+
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -425,51 +422,54 @@ def correlation_dimension(patient, channel, delay, maximumdimension, theilerwind
         f.write(str(data.sigbufs[channel][i]))
         f.write("\n")
     f.close()
-    
-    command = 'd2 temp_data.dat -d' + str(delay) + ' -M 1,' + str(maximumdimension) + ' -t'+str(theilerwindow)+' -o corrdimension'
+
+    command = 'd2 temp_data.dat -d' + str(delay) + ' -M 1,' + str(maximumdimension) + ' -t' + str(
+        theilerwindow) + ' -o corrdimension'
     os.system(command)
     command2 = 'av-d2 corrdimension.d2 -o'
     os.system(command2)
-    
+
     gp.c('set terminal png size 800,700')
     gp.c('set output \'./corrdimensionC2.png\'')
-    gp.c('set logscale') # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
+    gp.c(
+        'set logscale')  # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
     gp.c('plot \'corrdimension.c2\' with lines')
     gp.c('reset session')
     gp.c('set output \'./corrdimensiond2.png\'')
-    gp.c('set logscale x') # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
+    gp.c(
+        'set logscale x')  # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
     gp.c('plot \'corrdimension.d2.av\' with lines')
 
-        
+
 # Get the right window length to compute the Lyapunov exponent
 def find_optimal_window_for_near_stationary(patient, channel):
-    
     data = edf_data(patient)
-    
+
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
-    
-    minimumlengthwindow = 3072 # You must take in account the representation space and the vectors length associated.
-    maximumlengthwindow = 7680 # Same thing !
-    precisionstep = 100 # not too small if you don't want to be too long !
-    
+
+    minimumlengthwindow = 3072  # You must take in account the representation space and the vectors length associated.
+    maximumlengthwindow = 7680  # Same thing !
+    precisionstep = 100  # not too small if you don't want to be too long !
+
     xitwindow = np.arange(minimumlengthwindow, maximumlengthwindow, step=precisionstep)
     meanVarMean = []
     for itwindow in range(minimumlengthwindow, maximumlengthwindow, precisionstep):
         meanresult = []
         i = 0
-        while i+itwindow < len(data.sigbufs[channel]):
-            meanresult.append(mean(data.sigbufs[channel][i:i+itwindow]))
+        while i + itwindow < len(data.sigbufs[channel]):
+            meanresult.append(mean(data.sigbufs[channel][i:i + itwindow]))
             i = i + itwindow
         meanVarMean.append(variance(meanresult))
-        
+
     plt.figure()
     plt.plot(xitwindow, meanVarMean)
     plt.show()
-    
+
+
 def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=10,
                                     windowlengthsec=23):
     data = edf_data(patient)
@@ -477,8 +477,8 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     end = (initsec + windowlengthsec) * data.sample_frequency
     initsec = initsec * data.sample_frequency
 
-    assert(end < len(data.sigbufs[channel]))
-    
+    assert (end < len(data.sigbufs[channel]))
+
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel][initsec:end]))
     print(" Data Sample Frequency (Hz) :", data.sample_frequency)
@@ -493,8 +493,10 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
         f.write("\n")
     f.close()
 
-    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,"/", delay, "/", theilerwindow)
-    command = 'lyap_r temp_data.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(theilerwindow) + ' -s500 -o lyap_output.ros'
+    print(" You're actually computing the maximum Lyapunov exponent with dimension/delay/theilerwindow:", dimension,
+          "/", delay, "/", theilerwindow)
+    command = 'lyap_r temp_data.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
+        theilerwindow) + ' -s500 -o lyap_output.ros'
     os.system(command)
 
     f = open("lyap_output.ros", "r")
@@ -511,21 +513,22 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     f.close()
 
     if len(lyap) == 0:
-        print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
+        print(
+            " There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
         return
 
     lenLyap1 = 200
     lenLyap2 = 100
     y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))
     y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))
-    
+
     slope1, intercept1, r_value1, p_value1, std_err1 = linregress(y1, lyap[0:lenLyap1])
-    slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
-    
-    intersect12point = int((intercept2-intercept1)/slope1)
+    slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap) - lenLyap2:len(lyap)])
+
+    intersect12point = int((intercept2 - intercept1) / slope1)
     yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
     slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
-    
+
     x = np.arange(0, len(lyap), step=1)
 
     print(" Lyapunov Exponent : ", slope1)
@@ -535,8 +538,8 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     plt.show()
 
 
-def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=25, timeendsec=-1):
-
+def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, windowlength=25,
+                              timeendsec=-1):
     data = edf_data(patient)
     print(" Data Analysis:")
     print(" Data length (number of points) :", len(data.sigbufs[channel]))
@@ -544,21 +547,22 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
     time = range(0, len(data.sigbufs[channel]))
     time = time / data.sample_frequency
 
+    # Conversion in number of points
     if timeendsec == -1:
         timeendsec = len(data.sigbufs[channel]) - 1
     elif timeendsec != -1:
         timeendsec = timeendsec * data.sample_frequency
-    
-    assert(windowlength > 0)
-    
-    windowlength = windowlength*data.sample_frequency
+
+    assert (windowlength > 0)
+
+    windowlength = windowlength * data.sample_frequency
 
     itwindow = 0
 
     LyapDyn = []
 
     while (itwindow + windowlength) < timeendsec:
-        
+
         f = open("temp_data.dat", "w")
         for i in range(itwindow, itwindow + windowlength):
             f.write(str(data.sigbufs[channel][i]))
@@ -566,10 +570,11 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
         f.close()
 
         output_file = 'lyap_output_channel.ros'
-        command = 'lyap_r temp_data.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(theilerwindow) + ' -s500 -o' + str(output_file)
+        command = 'lyap_r temp_data.dat -m' + str(dimension) + ' -d' + str(delay) + ' -t' + str(
+            theilerwindow) + ' -s500 -o' + str(output_file)
         os.system(command)
 
-        print("\n Analysing... ", itwindow * 100 / len(data.sigbufs[channel]), "%")
+        print("\n Analysing... ", itwindow * 100 / len(data.sigbufs[channel]), "%")  # Progress in %
 
         f = open(output_file, "r")
         lyap = []
@@ -586,41 +591,47 @@ def dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwin
 
         lenLyap1 = 200
         lenLyap2 = 100
-        y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))
-        y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))
-    
-        slope1, intercept1, r_value1, p_value1, std_err1 = linregress(y1, lyap[0:lenLyap1])
-        slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap)-lenLyap2:len(lyap)])
-    
-        intersect12point = int((intercept2-intercept1)/slope1)
-        
-        if(intersect12point > len(lyap)):
-            print(" One Lyapunov exponent is not consistent. Thus, we will use the continuity of the Lyapunov exponent through time.")    
-            slopef= LyapDyn[-1]
+        y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))  # int from 0 to 200 (excluded)
+        y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))  # int from 0 to 100 (excluded)
+
+        slope1, intercept1, r_value1, p_value1, std_err1 = linregress(y1, lyap[0:lenLyap1])  # first 200 points
+        slope2, intercept2, r_value2, p_value2, std_err2 = linregress(y2, lyap[len(lyap) - lenLyap2:len(
+            lyap)])  # last 100 points
+
+        intersect12point = int(
+            (intercept2 - intercept1) / slope1)  # x-coordinate of the intersection between the two lines
+
+        if intersect12point > len(lyap):
+            print(
+                " One Lyapunov exponent is not consistent. Thus, we will use the continuity of the Lyapunov exponent through time.")
+            slopef = LyapDyn[-1]
         else:
-            yfinal = np.linspace(0, intersect12point, intersect12point, False, False, np.dtype('int16'))
-            slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[0:intersect12point])
-    
+            yfinal = np.linspace(0, intersect12point, intersect12point, False, False,
+                                 np.dtype('int16'))  # int from 0 to intersect12point value
+            slopef, interceptf, r_valuef, p_valuef, std_errf = linregress(yfinal, lyap[
+                                                                                  0:intersect12point])  # the regression needs to stop before the plateau
+
         LyapDyn.append(slopef)
-        itwindow += int(windowlength/2)
-        
+        itwindow += int(windowlength / 2)  # moving window with overlapping of 1/2
+
+    # Write the lyapunov in a file
     DIR = os.path.abspath(os.path.dirname(__file__))
-    output_file = os.path.join(DIR, 'lyap_data/lyap_output_channel_' + str(channel) + '.ros')
-    
+    output_file = os.path.join(DIR, 'lyap_data_test/lyap_output_channel_' + str(channel) + '.ros')
+
     f = open(output_file, "w")
     for i in range(0, len(LyapDyn)):
         f.write(str(LyapDyn[i]))
         f.write("\n")
     f.close()
-       
+
     plt.figure()
     plt.plot(LyapDyn)
-    plt.savefig('dynamic_lyap_result_channel'+str(channel)+'.png')
+    plt.savefig('dynamic_lyap_result_channel' + str(channel) + '.png')
+
 
 def show_lyapunovexponent(patient, channelstouse):
-    
     lyapfromchannels = []
-    
+
     for i in range(0, len(channelstouse)):
 
         DIR = os.path.abspath(os.path.dirname(__file__))
@@ -630,35 +641,35 @@ def show_lyapunovexponent(patient, channelstouse):
         lyap = []
         lecture = f.readlines()
         N_lignes = len(lecture)
-    
+
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
-                    c = lecture[j]
-                    lyap.append(float(c))
-                    break
+                c = lecture[j]
+                lyap.append(float(c))
+                break
         f.close()
         lyapfromchannels.append(lyap)
-    
+
     lyapfromchannelsMean = []
-    for t in range (0, len(lyapfromchannels[0])):
+    for t in range(0, len(lyapfromchannels[0])):
         allvalue = []
         for i in range(0, len(lyapfromchannels)):
             allvalue.append(lyapfromchannels[i][t])
         lyapfromchannelsMean.append(mean(allvalue))
-    
+
     x = np.linspace(0, 3600, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
-    
+
     plt.figure()
-    plt.plot(x,lyapfromchannelsMean)
+    plt.plot(x, lyapfromchannelsMean)
     plt.show()
-    
+
+
 def index(channelstouse, timeendsec):
-        
     if timeendsec == -1:
         timeendsec = 3600
-        
+
     lyapfromchannels = []
-    
+
     for i in range(0, len(channelstouse)):
 
         DIR = os.path.abspath(os.path.dirname(__file__))
@@ -668,30 +679,29 @@ def index(channelstouse, timeendsec):
         lyap = []
         lecture = f.readlines()
         N_lignes = len(lecture)
-    
+
         for j in range(1, int(N_lignes)):
             for i in range(0, len(lecture[j])):
-                    c = lecture[j]
-                    lyap.append(float(c))
-                    break
+                c = lecture[j]
+                lyap.append(float(c))
+                break
         f.close()
         lyapfromchannels.append(lyap)
-    
-    
+
     N = 30
-       
+
     Tindexfinal = []
-    
-    for t in range (0, len(lyapfromchannels[0])-N-1):
+
+    for t in range(0, len(lyapfromchannels[0]) - N - 1):
         Tij = []
         for i in range(0, len(lyapfromchannels)):  # electrode i
-            for j in range(i+1, len(lyapfromchannels)):  # electrode j
+            for j in range(i + 1, len(lyapfromchannels)):  # electrode j
                 diffwindow = []
-                for k in range(t, t+N+1):
-                    diffwindow.append(abs(lyapfromchannels[i][k]-lyapfromchannels[j][k]))
-                Tij.append(mean(diffwindow)*np.sqrt(N)/np.std(diffwindow))
+                for k in range(t, t + N + 1):
+                    diffwindow.append(abs(lyapfromchannels[i][k] - lyapfromchannels[j][k]))
+                Tij.append(mean(diffwindow) * np.sqrt(N) / np.std(diffwindow))
         Tindexfinal.append(mean(Tij))
-    
+
     """
     plt.figure(dpi=120)
     x = np.linspace(0, 3600, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
@@ -705,15 +715,14 @@ def index(channelstouse, timeendsec):
     #plt.plot(x, lyapfromchannels[7])
     plt.show()
     """
-    
-    
-    x = np.linspace(0, timeendsec, len(lyapfromchannels[0])-N-1, False, False, np.dtype('int16'))
+
+    x = np.linspace(0, timeendsec, len(lyapfromchannels[0]) - N - 1, False, False, np.dtype('int16'))
     print(len(Tindexfinal))
     plt.figure(dpi=80)
     plt.plot(x, Tindexfinal)
     plt.show()
-    
-    
+
+
 """
     EXPERIMENTATIONS / TESTS
 
@@ -793,17 +802,18 @@ dimension = 15
 # find_optimal_window_for_near_stationary(patient,channel)
 
 # Research - time window
-channel = 11 # 5 7
+channel = 11  # 5 7
 dimension = 13
 delay = 30
 timeendsec = -1
 
 # channelstouse = [0, 5, 7, 10, 11, 15, 16, 20]
 # channelstouse = [0, 5, 7, 10, 11, 15, 16, 20] #, 10, 11, 15, 16, 19]
-channelstouse = [0,4,8,11,15,16,19]
-show_lyapunovexponent(patient, channelstouse)
+# channelstouse = [0,4,8,11,15,16,19]
+# show_lyapunovexponent(patient, channelstouse)
 # esp_data_analysis(patient, channel)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, 200, 2996, 23)
-# dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3*delay, windowlength=23, timeendsec=timeendsec)
+dynamic_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow=3 * delay, windowlength=23,
+                          timeendsec=timeendsec)
 
-index(channelstouse, timeendsec)
+# index(channelstouse, timeendsec)
