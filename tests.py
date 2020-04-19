@@ -27,7 +27,7 @@ def test_tisean_package_service_PartOne():
     # Input Data
     print("We are testing the Henon map.")
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/part1_henonmap.png\'')
+    gp.c('set output \'./test_accuracy/part1_henonmap.png\'')
     gp.c('set yrange [-1:1]')
     gp.c('plot \'< henon -B0 -A2. -l100\' using 0:1 with linespoints') # a = 2.0, b=0 , 100 iterations
 
@@ -36,11 +36,11 @@ def test_tisean_package_service_PartOne():
     print("Bifurcation Henon Map.")
     gp.c('reset session')
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/part1_henonmap_bifurcation.png\'')
+    gp.c('set output \'./test_accuracy/part1_henonmap_bifurcation.png\'')
     gp.c('reset session')
-    gp.c('load \'./Tisean_test_accuracy/henon.gnu\'')
+    gp.c('load \'./test_accuracy/henon.gnu\'')
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/part1_henonmap_delay.png\'')
+    gp.c('set output \'./test_accuracy/part1_henonmap_delay.png\'')
     gp.c('reset session') # Important line because if you have plotted something before the next plot might be impacted !
     gp.c('plot \'< henon -B0 -A2. -l50000 | delay\' with dots') # a = 2.0, b = 0, 50000 iterations
 
@@ -48,21 +48,21 @@ def test_tisean_package_service_PartOne():
     # Histogram
     print("Histogram.")
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/histogram.png\'')
-    gp.c('plot "< histogram -b50 ./Tisean_test_accuracy/henon.dat" with boxes')  # 50 bins
+    gp.c('set output \'./test_accuracy/histogram.png\'')
+    gp.c('plot "< histogram -b50 ./test_accuracy/henon.dat" with boxes')  # 50 bins
     gp.c('set terminal png size 400,300')
-    os.system("henon -l10000 -B0 -A2. -o ./Tisean_test_accuracy/henon.dat") # a = 2.0, b = 0, 10000 iterations
+    os.system("henon -l10000 -B0 -A2. -o ./test_accuracy/henon.dat") # a = 2.0, b = 0, 10000 iterations
     gp.c('reset session')
     
     # Lyapunov
     print("Lyapunov.")
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/Lyapunov_henon.png\'')
-    os.system('henon -l10000 -B0 -A2. | lyap_r -s20 -o ./Tisean_test_accuracy/lyap_r_henon.dat') # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
+    gp.c('set output \'./test_accuracy/Lyapunov_henon.png\'')
+    os.system('henon -l10000 -B0 -A2. | lyap_r -s20 -o ./test_accuracy/lyap_r_henon.dat') # a = 2.0, b = 0, 10stre000 iterations for the Henon map, 20 iterations for the Lyapunov Exponent
     gp.c('reset session')
-    gp.c('plot \'./Tisean_test_accuracy/lyap_r_henon.dat\' with lines, x*log(2.)-8, -log(2.) with lines ')
+    gp.c('plot \'./test_accuracy/lyap_r_henon.dat\' with lines, x*log(2.)-8, -log(2.) with lines ')
     
-    print("Finished. See Tisean_test_accuracy directory !")
+    print("Finished. See test_accuracy directory !")
     
 def test_tisean_package_service_PartTwo():
     
@@ -70,7 +70,7 @@ def test_tisean_package_service_PartTwo():
     
     # Input Data
     print("We are using the data given by the Tisean Package : amplitude.dat")
-    datafile = open("./Tisean_test_accuracy/amplitude.dat","r")
+    datafile = open("./test_accuracy/amplitude.dat","r")
     data = []
     for ligne in datafile:
         data.append(float(ligne))   
@@ -81,11 +81,11 @@ def test_tisean_package_service_PartTwo():
     # Histogram
     print("Histogram.")
     gp.c('set terminal png size 400,300')
-    gp.c('set output \'./Tisean_test_accuracy/histogram_amplitude.png\'')
-    gp.c('plot "< histogram -b50 ./Tisean_test_accuracy/amplitude.dat" with boxes')
+    gp.c('set output \'./test_accuracy/histogram_amplitude.png\'')
+    gp.c('plot "< histogram -b50 ./test_accuracy/amplitude.dat" with boxes')
 
     # Correlation
-    stream = os.popen('corr -D10 ./Tisean_test_accuracy/amplitude.dat') # Only 10 correlations values : we need to see it crossing zero...
+    stream = os.popen('corr -D10 ./test_accuracy/amplitude.dat') # Only 10 correlations values : we need to see it crossing zero...
     output = stream.read()
     print("[Corr] :")
     print("The first two lines contain: 1. the average and 2. the standard deviation of the data. The following lines are the autocorrelations (first column: delay, second column: autocorrelation). ")
