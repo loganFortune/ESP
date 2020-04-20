@@ -7,9 +7,16 @@ The code provided is like a wrapper for Tisean tools. It has been optimized for 
 
 ## EEG Visualization 
 
+![Data Visualization](/images/all_data_skull.png)
+
 ## EEG Data Analysis
 
+![Power Spectrum](/images/power_spectrum.png)
+![Spectogram](/images/spectogram.png)
+
 ## Embedding Delay Analysis (Autocorrelation and Mutual Information)
+
+![Power Spectrum](/images/mutual_info.png)
 
 ## Embedding dimension (Taken's theorem) - False nearest neighbors
 
