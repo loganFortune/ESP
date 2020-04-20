@@ -22,8 +22,6 @@ The code provided is like a wrapper for Tisean tools. It has been optimized for 
 
 ## Correlation Dimension Analysis
 
-![Stp Graph](/images/stp_graph.png {width=400px height=400px})
-
 ## Maximum Lyapunov exponent
 
 ![Maximum Lyapunov Exponent](/images/lyap.png)
