@@ -1,6 +1,24 @@
 # Epilepsy Seizures Prediction (ESP)
 Epilepsy Seizures Prediction (ESP) Using Non-Linear Dynamics And Machine Learning.
 
+The code provided is like a wrapper for Tisean tools. It has been optimized for our purpose: the prediction of epileptic seizures.
+
+# What can you do ? (Most important functions)
+
+## EEG Visualization 
+
+## EEG Data Analysis
+
+## Embedding Delay Analysis (Autocorrelation and Mutual Information)
+
+## Embedding dimension (Taken's theorem) - False nearest neighbors
+
+## Correlation Dimension Analysis
+
+## Maximum Lyapunov exponent
+
+## Synchrony Index
+
 # Installation Procedure
 
 ## Python Packages
