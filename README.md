@@ -16,7 +16,7 @@ The code provided is like a wrapper for Tisean tools. It has been optimized for 
 
 ## Embedding Delay Analysis (Autocorrelation and Mutual Information)
 
-![Power Spectrum](/images/mutual info.png)
+![Power Spectrum](/images/mutual_info.png)
 
 ## Embedding dimension (Taken's theorem) - False nearest neighbors
 
