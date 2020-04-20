@@ -16,13 +16,17 @@ The code provided is like a wrapper for Tisean tools. It has been optimized for 
 
 ## Embedding Delay Analysis (Autocorrelation and Mutual Information)
 
-![Power Spectrum](/images/mutual_info.png)
+![Power Spectrum](/images/mutual info.png)
 
 ## Embedding dimension (Taken's theorem) - False nearest neighbors
 
 ## Correlation Dimension Analysis
 
+![Stp Graph](/images/stp_graph.png)
+
 ## Maximum Lyapunov exponent
+
+![Maximum Lyapunov Exponent](/images/lyap.png)
 
 ## Synchrony Index
 
