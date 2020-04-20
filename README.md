@@ -3,7 +3,7 @@ Epilepsy Seizures Prediction (ESP) Using Non-Linear Dynamics And Machine Learnin
 
 The code provided is like a wrapper for Tisean tools. It has been optimized for our purpose: the prediction of epileptic seizures.
 
-# What can you do ? (Most important functions)
+# ESP functions
 
 ## EEG Visualization 
 
