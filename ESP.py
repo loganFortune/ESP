@@ -119,10 +119,7 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
     plt.plot(x_f, y_f)
     plt.figure(2)
     plt.plot(x_corr, y_corr)
-    for i in range(len(x_corr)):
-        if y_corr[i] < 0.00:
-            plt.axhline(y=0, color= 'r')
-            break
+    plt.axhline(y=0, color='r')
     plt.show()
 
 
@@ -303,12 +300,15 @@ def false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, the
     print(y)
     f.close()
     plt.figure(dpi=200)
-    titlespec = 'Find the Embedding dimension with the False Neighbours method \n Patient/Experience:' + patient
+    titlespec = 'False Neighbours method \n Patient/Experience:' + patient
     plt.title(titlespec)
     plt.xlabel('Dimension')
     plt.ylabel('Fraction of false neighbors (%)')
-    plt.xticks(np.arange(3, maximumdimension + 1, step=1))
+    plt.xticks(np.arange(3, maximumdimension + 1, step=2))
+    plt.xticks(fontsize=12)
     plt.plot(x, y)
+    plt.axhline(y=0, color='r')
+    plt.axhline(y=10, color='r')
     plt.savefig('false_nearest_chb01_03.png')
 
 
@@ -572,9 +572,9 @@ windowlengthsec = 800
 
 ############## Analysis #######################################################
 
-autocor_mutual_info_phase_space(patient, start_time, end_time)
-visualization_phase_space(patient, channel, False, delay, start_time, end_time)
-# false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
+#autocor_mutual_info_phase_space(patient, start_time, end_time)
+#visualization_phase_space(patient, channel, False, delay, start_time, end_time)
+false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
 # correlation_dimension(patient, channel, delay, maximumdimension, theilerwindow, timeinitsec = start_time, timeendsec = end_time)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 # space_time_separation_plot(patient, channel)
