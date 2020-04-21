@@ -116,8 +116,12 @@ def visualization_phase_space(patient, channel, useowndelay=False, delay=5, time
     x_f = [x[i] for i in range(0, len(x), 20)]
     y_f = [y[i] for i in range(0, len(y), 20)]
     plt.figure(1)
+    titlespec = 'Visual Inspection \n Patient/Experience:' + patient
+    plt.title(titlespec)
     plt.plot(x_f, y_f)
     plt.figure(2)
+    titlespec = 'Autocorrelation \n Patient/Experience:' + patient
+    plt.title(titlespec)
     plt.plot(x_corr, y_corr)
     plt.axhline(y=0, color='r')
     plt.show()
@@ -186,6 +190,8 @@ def autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1):
         if not minimumexistence:
             firstminimumfromallchannels.append(-1)  # -1 means no minimum found
 
+        titlespec = 'Mutual Information \n Patient/Experience:' + patient
+        plt.title(titlespec)
         plt.plot(mut)
 
         # Autocorr Analysis
@@ -572,9 +578,9 @@ windowlengthsec = 800
 
 ############## Analysis #######################################################
 
-#autocor_mutual_info_phase_space(patient, start_time, end_time)
-#visualization_phase_space(patient, channel, False, delay, start_time, end_time)
-false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
+autocor_mutual_info_phase_space(patient, start_time, end_time)
+visualization_phase_space(patient, channel, False, delay, start_time, end_time)
+#false_nearest_phase_space(patient, channel, maximumdimension, delay, theilerwindow, start_time, end_time)
 # correlation_dimension(patient, channel, delay, maximumdimension, theilerwindow, timeinitsec = start_time, timeendsec = end_time)
 # single_Window_Lyapunov_exponent(patient, channel, dimension, delay, theilerwindow, initsec, windowlengthsec)
 # space_time_separation_plot(patient, channel)
