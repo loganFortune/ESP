@@ -225,7 +225,7 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
         print(" There was a problem during execution ! Be careful that the window length window is sufficiently large to operate with the dimension.")
         return
 
-    lenLyap1 = 200
+    lenLyap1 = 100
     lenLyap2 = 100
     y1 = np.linspace(0, lenLyap1, lenLyap1, False, False, np.dtype('int16'))
     y2 = np.linspace(0, lenLyap2, lenLyap2, False, False, np.dtype('int16'))
@@ -243,4 +243,41 @@ def single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, thei
     plt.figure()
     plt.plot(lyap)
     plt.plot(x, interceptf + slopef * x, 'r', label='fitted line')
+    plt.show()
+
+def show_lyapunovexponent(patient, channelstouse):
+    
+    lyapfromchannels = []
+    
+    print(" Don't forget to modify the name of the file (where Lyapunov exponents are stored) manually ! ")
+        
+    for i in range(0, len(channelstouse)):
+
+        DIR = os.path.abspath(os.path.dirname(__file__))
+        filesname = os.path.join(DIR, 'lyap_data/lyap_data_04/lyap_output_channel_' + str(channelstouse[i]) + '.ros')
+
+        f = open(filesname, "r")
+        lyap = []
+        lecture = f.readlines()
+        N_lignes = len(lecture)
+    
+        for j in range(1, int(N_lignes)):
+            for i in range(0, len(lecture[j])):
+                    c = lecture[j]
+                    lyap.append(float(c))
+                    break
+        f.close()
+        lyapfromchannels.append(lyap)
+    
+    lyapfromchannelsMean = []
+    for t in range (0, len(lyapfromchannels[0])):
+        allvalue = []
+        for i in range(0, len(lyapfromchannels)):
+            allvalue.append(lyapfromchannels[i][t])
+        lyapfromchannelsMean.append(mean(allvalue))
+    
+    x = np.linspace(0, 3600, len(lyapfromchannels[0]), False, False, np.dtype('int16'))
+    
+    plt.figure()
+    plt.plot(x,lyapfromchannelsMean)
     plt.show()
