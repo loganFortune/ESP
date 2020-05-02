@@ -5,27 +5,43 @@ The code provided is a wrapper for some Tisean tools. It has been optimized for 
 
 # ESP functions
 
-## EEG Visualization 
+## EEG Visualization And EEG Data Analysis
 
-<div style="text-align:center">
+```
+esp_data_analysis(patient, channel)
+```
+
 ![Data Visualization](/images/all_data_skull.png)
-</div>
-
-## EEG Data Analysis
-
 ![Power Spectrum](/images/power_spectrum.png)
 ![Spectogram](/images/spectogram.png)
 
 ## Embedding Delay Analysis (Autocorrelation and Mutual Information)
 
+```
+visualization_phase_space(patient, channel, useowndelay=False, delay=5, timeinitsec=0, timeendsec=-1)
+```
+
+```
+autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1)
+```
+
 ![Power Spectrum](/images/mutual_info.png)
 
 ## Embedding dimension (Taken's theorem) - False nearest neighbors
 
+```
+false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, theilerwindow=100, timeinitsec=0,
+                              timeendsec=-1)
+```
 ## Correlation Dimension Analysis
 
 ## Maximum Lyapunov exponent
 
+```
+single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=100, initsec=10,
+                                    windowlengthsec=23)
+dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=200, windowlength=25, timeendsec=-1)
+```
 ![Maximum Lyapunov Exponent](/images/lyap.png)
 
 ## Synchrony Index
