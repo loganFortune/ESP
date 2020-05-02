@@ -7,9 +7,9 @@ The code provided is a wrapper for some Tisean tools. It has been optimized for 
 
 ## EEG Visualization 
 
-<span style="display:block;text-align:center">
+<div style="text-align:center">
 ![Data Visualization](/images/all_data_skull.png)
-</span>
+</div>
 
 ## EEG Data Analysis
 
