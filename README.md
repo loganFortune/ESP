@@ -33,8 +33,6 @@ autocor_mutual_info_phase_space(patient, timeinitsec=0, timeendsec=-1)
 false_nearest_phase_space(patient, channel, maximumdimension=5, delay=5, theilerwindow=100, timeinitsec=0,
                               timeendsec=-1)
 ```
-## Correlation Dimension Analysis
-
 ## Maximum Lyapunov exponent
 
 ```
@@ -43,8 +41,6 @@ single_Window_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerw
 dynamic_Lyapunov_exponent(patient, channel, dimension=5, delay=5, theilerwindow=200, windowlength=25, timeendsec=-1)
 ```
 ![Maximum Lyapunov Exponent](/images/lyap.png)
-
-## Synchrony Index
 
 # Installation Procedure
 
